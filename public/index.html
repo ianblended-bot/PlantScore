@@ -11,124 +11,124 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
-      --green: #0F6E56; --green-dark: #085041; --green-bg: #E1F5EE;
-      --amber: #BA7517; --amber-bg: #FAEEDA;
-      --red: #A32D2D; --red-bg: #FCEBEB;
-      --text: #1a1a1a; --text-mid: #555; --text-light: #888;
-      --border: #ddd; --border-light: #eee;
-      --bg: #fff; --bg-off: #f8f8f6; --bg-secondary: #f2f2f0;
-      --radius: 10px; --radius-sm: 6px;
+      --green:#0F6E56;--green-dark:#085041;--green-bg:#E1F5EE;
+      --amber:#BA7517;--amber-bg:#FAEEDA;
+      --red:#A32D2D;--red-bg:#FCEBEB;
+      --text:#1a1a1a;--text-mid:#555;--text-light:#888;
+      --border:#ddd;--border-light:#eee;
+      --bg:#fff;--bg-off:#f8f8f6;--bg-sec:#f2f2f0;
+      --r:10px;--rs:6px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-off); color: var(--text); }
-    body { max-width: 480px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
-    .screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 20px 16px 90px; }
-    .screen.active { display: flex; }
-    .logo { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .logo span { color: var(--green); }
-    .tagline { font-size: 13px; color: var(--text-light); margin-bottom: 28px; }
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
-    .field input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); outline: none; transition: border-color .15s; }
-    .field input:focus { border-color: var(--green); }
-    .btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
-    .btn:active { opacity: .85; } .btn:disabled { opacity: .4; cursor: not-allowed; }
-    .btn-primary { background: var(--green); color: #fff; }
-    .btn-outline { background: var(--bg); color: var(--text); border: 1px solid var(--border); font-weight: 500; margin-top: 8px; }
-    .btn-danger { background: var(--bg); color: var(--red); border: 1px solid #f0c0c0; font-weight: 500; margin-top: 8px; }
-    .btn-sm { padding: 8px 14px; font-size: 13px; font-weight: 500; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-    .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg); border-top: 1px solid var(--border-light); display: none; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-    .nav.visible { display: flex; }
-    .nav-btn { flex: 1; padding: 10px 2px 8px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-light); font-size: 9px; font-weight: 500; border-top: 2px solid transparent; }
-    .nav-btn i { font-size: 18px; } .nav-btn.active { color: var(--green); border-top-color: var(--green); }
-    .hbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border-light); }
-    .hbar-left .site { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
-    .hbar-left .auditor { font-size: 15px; font-weight: 600; }
-    .zone-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; background: var(--green-bg); color: var(--green-dark); padding: 3px 9px; border-radius: 20px; margin-top: 4px; }
-    .up-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .up-btn { padding: 14px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 500; }
-    .up-btn i { font-size: 22px; color: var(--green); } .up-btn:active { background: var(--bg-secondary); }
-    input[type=file] { display: none; }
-    .thumb-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-    .thumb { width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-light); }
-    .zone-row { display: flex; gap: 8px; margin-bottom: 14px; }
-    .zone-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); outline: none; }
-    .zone-row input:focus { border-color: var(--green); }
-    .zone-row button { padding: 10px 16px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
-    .card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; background: var(--bg); }
-    .card-img { width: 100%; height: auto; max-height: 340px; object-fit: contain; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-secondary); }
-    .plant-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-    .img-num { font-size: 11px; color: var(--text-light); margin-bottom: 3px; }
-    .scores { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    .score-pill { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 20px; }
-    .s-high { background: var(--green-bg); color: var(--green-dark); }
-    .s-mid  { background: var(--amber-bg); color: #5a3800; }
-    .s-low  { background: var(--red-bg); color: var(--red); }
-    .overall { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-    .issues-label { font-size: 11px; font-weight: 700; color: var(--text-mid); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
-    .issues-body { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
-    .rec-box { margin-top: 10px; padding: 10px 12px; background: var(--bg-off); border-left: 3px solid var(--green); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-    .rec-label { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
-    .rec-body { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
-    .loading { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 24px; text-align: center; background: var(--bg-secondary); margin-bottom: 12px; }
-    .spinner { width: 26px; height: 26px; border: 2.5px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading p { font-size: 13px; color: var(--text-light); }
-    .sum-card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; background: var(--bg-off); margin-bottom: 10px; }
-    .sum-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .sum-body { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
-    .avg-num { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
-    .avg-label { font-size: 12px; color: var(--text-light); margin-top: 3px; }
-    .act-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-    .act-btn { padding: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .act-btn:active { background: var(--bg-secondary); }
-    textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; outline: none; font-family: inherit; }
-    textarea:focus { border-color: var(--green); }
-    .note-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
-    .note-text { flex: 1; font-size: 13px; color: var(--text); line-height: 1.55; }
-    .note-del { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 16px; padding: 2px; flex-shrink: 0; }
-    .zone-group { margin-bottom: 18px; }
-    .zone-group-title { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border-light); }
-    .hist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
-    .hist-thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-light); flex-shrink: 0; }
-    .hist-thumb-placeholder { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .hist-info { flex: 1; min-width: 0; }
-    .hist-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .hist-meta { font-size: 12px; color: var(--text-light); margin: 2px 0; }
-    .hist-pills { display: flex; gap: 4px; flex-wrap: wrap; }
-    .stat-card { background: var(--bg-off); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
-    .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .stat-label { font-size: 13px; color: var(--text-mid); }
-    .stat-val { font-size: 13px; font-weight: 600; }
-    /* Zones panel */
-    .zone-panel { border: 1px solid var(--border-light); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
-    .zone-panel-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-off); cursor: pointer; }
-    .zone-panel-hdr h3 { font-size: 13px; font-weight: 600; }
-    .zone-panel-hdr .za { font-size: 12px; color: var(--text-light); }
-    .zone-panel-body { display: none; padding: 10px 14px; }
-    .zone-panel-body.open { display: block; }
-    /* Saved audits */
-    .saved-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
-    .saved-info { flex: 1; }
-    .saved-name { font-size: 14px; font-weight: 600; }
-    .saved-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-    .saved-actions { display: flex; gap: 8px; }
-    .icon-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; font-size: 13px; color: var(--text-mid); }
-    .icon-btn.del { color: var(--red); border-color: #f0c0c0; }
-    .empty { text-align: center; padding: 40px 16px; color: var(--text-light); }
-    .empty i { font-size: 32px; display: block; margin-bottom: 10px; }
-    .empty p { font-size: 14px; }
-    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
-    .toast.show { opacity: 1; }
-    .hidden { display: none !important; }
-    .section-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; margin-top: 4px; }
-    .divider { border: none; border-top: 1px solid var(--border-light); margin: 16px 0; }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
-    .modal { background: var(--bg); border-radius: var(--radius) var(--radius) 0 0; padding: 24px 20px; width: 100%; max-width: 480px; }
-    .modal h3 { font-size: 16px; margin-bottom: 8px; }
-    .modal p { font-size: 13px; color: var(--text-mid); margin-bottom: 18px; }
-    .modal-btns { display: flex; gap: 10px; }
-    .modal-btns button { flex: 1; }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-off);color:var(--text)}
+    body{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+    .screen{display:none;flex:1;flex-direction:column;overflow-y:auto;padding:20px 16px 100px}
+    .screen.active{display:flex}
+    .logo{font-size:26px;font-weight:600;margin-bottom:4px}.logo span{color:var(--green)}
+    .tagline{font-size:13px;color:var(--text-light);margin-bottom:28px}
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+    .field input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--rs);font-size:15px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+    .field input:focus{border-color:var(--green)}
+    .btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:13px;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s}
+    .btn:active{opacity:.85}.btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-primary{background:var(--green);color:#fff}
+    .btn-outline{background:var(--bg);color:var(--text);border:1px solid var(--border);font-weight:500;margin-top:8px}
+    .btn-danger{background:var(--bg);color:var(--red);border:1px solid #f0c0c0;font-weight:500;margin-top:8px}
+    .btn-sm{padding:8px 14px;font-size:13px;font-weight:500;width:auto;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:5px}
+    .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg);border-top:1px solid var(--border-light);display:none;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+    .nav.visible{display:flex}
+    .nav-btn{flex:1;padding:10px 2px 8px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-light);font-size:9px;font-weight:500;border-top:2px solid transparent}
+    .nav-btn i{font-size:18px}.nav-btn.active{color:var(--green);border-top-color:var(--green)}
+    .hbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border-light)}
+    .hbar-left .site{font-size:11px;color:var(--text-light);margin-bottom:2px}
+    .hbar-left .auditor{font-size:15px;font-weight:600}
+    .ztag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;background:var(--green-bg);color:var(--green-dark);padding:3px 9px;border-radius:20px;margin-top:4px}
+    .up-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .up-btn{padding:14px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:500}
+    .up-btn i{font-size:22px;color:var(--green)}.up-btn:active{background:var(--bg-sec)}
+    input[type=file]{display:none}
+    .thumb-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .thumb{width:64px;height:64px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border-light)}
+    .zone-row{display:flex;gap:8px;margin-bottom:14px}
+    .zone-row input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:14px;background:var(--bg);color:var(--text);outline:none}
+    .zone-row input:focus{border-color:var(--green)}
+    .zone-row button{padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer}
+    .card{border:1px solid var(--border-light);border-radius:var(--r);padding:14px;margin-bottom:12px;background:var(--bg)}
+    .card-img{width:100%;height:auto;max-height:340px;object-fit:contain;border-radius:var(--rs);margin-bottom:12px;background:var(--bg-sec)}
+    .img-num{font-size:11px;color:var(--text-light);margin-bottom:3px}
+    .plant-name{font-size:14px;font-weight:600;margin-bottom:8px}
+    .scores{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .sp{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px}
+    .sh{background:var(--green-bg);color:var(--green-dark)}
+    .sm{background:var(--amber-bg);color:#5a3800}
+    .sl{background:var(--red-bg);color:var(--red)}
+    .overall{font-size:14px;font-weight:700;margin-bottom:6px}
+    .ilbl{font-size:11px;font-weight:700;color:var(--text-mid);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+    .ibody{font-size:13px;color:var(--text-mid);line-height:1.6}
+    .rbox{margin-top:10px;padding:10px 12px;background:var(--bg-off);border-left:3px solid var(--green);border-radius:0 var(--rs) var(--rs) 0}
+    .rlbl{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+    .rbody{font-size:13px;color:var(--text-mid);line-height:1.6}
+    .loading{border:1px solid var(--border-light);border-radius:var(--r);padding:24px;text-align:center;background:var(--bg-sec);margin-bottom:12px}
+    .spinner{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading p{font-size:13px;color:var(--text-light)}
+    .sum-card{border:1px solid var(--border-light);border-radius:var(--r);padding:14px;background:var(--bg-off);margin-bottom:10px}
+    .sum-title{font-size:13px;font-weight:700;margin-bottom:6px}
+    .sum-body{font-size:13px;color:var(--text-mid);line-height:1.65}
+    .avg-num{font-size:32px;font-weight:700;line-height:1}
+    .avg-label{font-size:12px;color:var(--text-light);margin-top:3px}
+    .act-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .act-btn{padding:11px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+    .act-btn:active{background:var(--bg-sec)}
+    textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--rs);font-size:14px;background:var(--bg);color:var(--text);resize:vertical;min-height:80px;outline:none;font-family:inherit}
+    textarea:focus{border-color:var(--green)}
+    .note-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)}
+    .note-text{flex:1;font-size:13px;line-height:1.55}
+    .note-del{background:none;border:none;cursor:pointer;color:var(--text-light);font-size:16px;padding:2px;flex-shrink:0}
+    .zgroup{margin-bottom:18px}
+    .zgroup-title{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border-light)}
+    .hist-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light)}
+    .hist-thumb{width:48px;height:48px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border-light);flex-shrink:0}
+    .hist-ph{width:48px;height:48px;border-radius:var(--rs);background:var(--bg-sec);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .hist-info{flex:1;min-width:0}
+    .hist-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hist-meta{font-size:12px;color:var(--text-light);margin:2px 0}
+    .hist-pills{display:flex;gap:4px;flex-wrap:wrap}
+    .stat-card{background:var(--bg-off);border:1px solid var(--border-light);border-radius:var(--r);padding:14px;margin-bottom:10px}
+    .stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+    .stat-label{font-size:13px;color:var(--text-mid)}
+    .stat-val{font-size:13px;font-weight:600}
+    .zone-panel{border:1px solid var(--border-light);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+    .zp-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-off);cursor:pointer}
+    .zp-hdr h3{font-size:13px;font-weight:600}
+    .zp-hdr .za{font-size:12px;color:var(--text-light)}
+    .zp-body{display:none;padding:10px 14px}
+    .zp-body.open{display:block}
+    .saved-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light)}
+    .saved-info{flex:1}
+    .saved-name{font-size:14px;font-weight:600}
+    .saved-meta{font-size:12px;color:var(--text-light);margin-top:2px}
+    .saved-actions{display:flex;gap:8px}
+    .icon-btn{background:none;border:1px solid var(--border);border-radius:var(--rs);padding:6px 10px;cursor:pointer;font-size:13px;color:var(--text-mid)}
+    .icon-btn.del{color:var(--red);border-color:#f0c0c0}
+    .empty{text-align:center;padding:40px 16px;color:var(--text-light)}
+    .empty i{font-size:32px;display:block;margin-bottom:10px}
+    .empty p{font-size:14px}
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1}
+    .hidden{display:none!important}
+    .slabel{font-size:13px;font-weight:600;margin-bottom:10px;margin-top:4px}
+    .divider{border:none;border-top:1px solid var(--border-light);margin:16px 0}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+    .modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:24px 20px;width:100%;max-width:480px}
+    .modal h3{font-size:16px;margin-bottom:8px}
+    .modal p{font-size:13px;color:var(--text-mid);margin-bottom:18px}
+    .modal-btns{display:flex;gap:10px}
+    .modal-btns button{flex:1}
+    .warn-box{background:#FFF8E1;border:1px solid #FFD54F;border-radius:var(--rs);padding:12px;margin-bottom:8px}
+    .warn-box .wt{font-size:13px;font-weight:600;color:#5D4037;margin-bottom:4px}
+    .warn-box .wb{font-size:12px;color:#6D4C41;line-height:1.5}
   </style>
 </head>
 <body>
@@ -143,7 +143,7 @@
     <div class="field"><label>Auditor name</label><input id="auditorName" type="text" placeholder="Your name" autocomplete="off" /></div>
     <button class="btn btn-primary" onclick="startAudit()" style="margin-top:8px"><i class="fa-solid fa-leaf"></i> Start audit</button>
     <hr class="divider" />
-    <div class="section-label"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px;color:var(--green)"></i>Resume a saved audit</div>
+    <div class="slabel"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px;color:var(--green)"></i>Resume a saved audit</div>
     <div id="setupSavedList"></div>
   </div>
 </div>
@@ -157,7 +157,7 @@
       <div class="hbar-left">
         <div class="site" id="hSite"></div>
         <div class="auditor" id="hAuditor"></div>
-        <div class="zone-tag"><i class="fa-solid fa-location-dot" style="font-size:10px"></i><span id="hZone"></span></div>
+        <div class="ztag"><i class="fa-solid fa-location-dot" style="font-size:10px"></i><span id="hZone"></span></div>
       </div>
       <button class="btn-sm" onclick="toggleZoneRow()"><i class="fa-solid fa-arrows-rotate"></i> Zone</button>
     </div>
@@ -172,15 +172,17 @@
     <input type="file" id="camIn" accept="image/*" capture="environment" multiple onchange="handleFiles(this.files)" />
     <input type="file" id="fileIn" accept="image/*" multiple onchange="handleFiles(this.files)" />
     <div id="thumbRow" class="thumb-row hidden"></div>
-    <button id="assessBtn" class="btn btn-primary" onclick="runAssessment()" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Assess images</button>
+    <button id="assessBtn" class="btn btn-primary" onclick="runAssessment()" disabled>
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Assess images
+    </button>
     <div id="resultsArea" style="margin-top:14px"></div>
     <div class="act-row">
       <button class="act-btn" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
       <button class="act-btn" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
     </div>
-    <div style="margin-top:10px">
-      <button class="btn btn-outline" style="margin-top:0" onclick="toggleZoneRow()"><i class="fa-solid fa-arrows-rotate"></i> Switch zone</button>
-    </div>
+    <button class="btn btn-outline" style="margin-top:10px" onclick="toggleZoneRow()">
+      <i class="fa-solid fa-arrows-rotate"></i> Switch zone
+    </button>
     <div id="summaryArea" style="margin-top:14px"></div>
   </div>
 
@@ -201,10 +203,10 @@
       <div class="hbar-left">
         <div class="site" id="nSite"></div>
         <div class="auditor">Notes</div>
-        <div class="zone-tag"><i class="fa-solid fa-location-dot" style="font-size:10px"></i><span id="nZone"></span></div>
+        <div class="ztag"><i class="fa-solid fa-location-dot" style="font-size:10px"></i><span id="nZone"></span></div>
       </div>
     </div>
-    <div class="section-label">Add note for current zone</div>
+    <div class="slabel">Add note for current zone</div>
     <textarea id="noteText" placeholder="Type a note…"></textarea>
     <button class="btn btn-primary" onclick="addNote()" style="margin-top:8px"><i class="fa-solid fa-plus"></i> Add note</button>
     <hr class="divider" />
@@ -240,8 +242,8 @@
   <button class="nav-btn" id="nb-report" onclick="switchTab('report')"><i class="fa-solid fa-file-chart-column"></i>Report</button>
 </nav>
 
-<!-- CONFIRM MODAL -->
-<div id="modal" class="modal-backdrop hidden">
+<!-- MODAL -->
+<div id="modal" class="modal-bg hidden">
   <div class="modal">
     <h3 id="modalTitle"></h3>
     <p id="modalBody"></p>
@@ -257,56 +259,42 @@
 <script>
 const { jsPDF } = window.jspdf;
 const API = '/api/messages';
-const STORAGE_KEY = 'plantscore_audits';
+const LS_KEY = 'plantscore_audits';
 const IDB_NAME = 'PlantScoreDB';
 const IDB_STORE = 'images';
 
-// IndexedDB helpers for storing images separately (avoids localStorage size limits)
+// ── IndexedDB helpers ─────────────────────────────────────────────────────────
 function openIDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_NAME, 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror = () => reject(req.error);
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    r.onsuccess = e => res(e.target.result);
+    r.onerror = () => rej(r.error);
   });
 }
-
-async function idbSet(key, value) {
+async function idbSet(key, val) {
   try {
     const db = await openIDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((res, rej) => {
       const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+      tx.objectStore(IDB_STORE).put(val, key);
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
     });
-  } catch(e) { console.warn('IDB set failed:', e); }
+  } catch(e) { console.warn('IDB set failed', e); }
 }
-
 async function idbGet(key) {
   try {
     const db = await openIDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((res, rej) => {
       const tx = db.transaction(IDB_STORE, 'readonly');
-      const req = tx.objectStore(IDB_STORE).get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
+      const r = tx.objectStore(IDB_STORE).get(key);
+      r.onsuccess = () => res(r.result || null);
+      r.onerror = () => rej(r.error);
     });
   } catch(e) { return null; }
 }
 
-async function idbDelete(key) {
-  try {
-    const db = await openIDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).delete(key);
-      tx.oncomplete = resolve;
-    });
-  } catch(e) {}
-}
-
-// ── Scoring system prompt — calibrated for accuracy ──────────────────────────
+// ── System prompt ─────────────────────────────────────────────────────────────
 const SYSP = `You are a professional plant display auditor conducting a PlantScore audit.
 
 SCORING SCALE:
@@ -320,17 +308,17 @@ CALIBRATION:
 - A healthy, well-presented plant in a professional setting scores 4. Default to 4, not lower.
 - Only score below 3 if there is CLEAR, UNAMBIGUOUS visible evidence of serious problems.
 - Do NOT penalise for image angle, lighting, or anything not directly visible.
-- Score 5 is rare. Score 0 is NEVER valid — always give a score between 1 and 5.
+- Score 0 is NEVER valid. Always give a score between 1 and 5.
 
 MIXED PLANTERS:
 - If the image shows multiple species in one container, assess it as a single display.
 - Use PLANT_ID to name the dominant species only, or describe briefly e.g. "Mixed tropical display".
 - Score the overall presentation as a whole. Do not refuse to score.
-- Do not mention mixed planting in summaries unless it is directly relevant to a specific issue.
+- Do not mention mixed planting in summaries unless directly relevant to a specific issue.
 
 OUTPUT FORMAT — output ONLY the block below, with NO text before or after it:
 ---IMAGE_START---
-PLANT_ID: [species name or mix description]
+PLANT_ID: [species name or brief display description]
 HEALTH: [number 1-5, no text]
 MAINTENANCE: [number 1-5, no text]
 FORM: [number 1-5, no text]
@@ -341,10 +329,11 @@ RECS: [bullet list of recommendations ONLY if overall ≤3, otherwise the single
 
 CRITICAL: Output NOTHING except the block above. No preamble, no explanation, no commentary.`;
 
+// ── State ─────────────────────────────────────────────────────────────────────
 let S = {
-  site: '', zone: '', auditor: '',
-  pending: [], assessments: [], byZone: {},
-  notes: {}, zoneSums: {}, siteSumText: '', counter: 0
+  site:'', zone:'', auditor:'',
+  pending:[], assessments:[], byZone:{},
+  notes:{}, zoneSums:{}, siteSumText:'', counter:0
 };
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
@@ -358,15 +347,12 @@ function startAudit() {
   document.getElementById('mainNav').classList.add('visible');
   switchTab('audit');
 }
-
 function v(id) { return document.getElementById(id).value.trim(); }
-
 function refreshHeaders() {
   ['hSite','nSite','rSite','zSite'].forEach(id => setText(id, S.site + ' — ' + S.auditor));
   setText('hZone', S.zone); setText('nZone', S.zone);
   updateStats();
 }
-
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -382,7 +368,6 @@ function switchTab(tab) {
 
 // ── Zone ──────────────────────────────────────────────────────────────────────
 function toggleZoneRow() { document.getElementById('zoneRow').classList.toggle('hidden'); }
-
 function changeZone() {
   const val = document.getElementById('newZone').value.trim();
   if (!val) return;
@@ -416,7 +401,6 @@ function handleFiles(files) {
     reader.readAsDataURL(f);
   }
 }
-
 function resizeImage(dataUrl, maxPx, quality) {
   return new Promise(resolve => {
     const img = new Image();
@@ -433,15 +417,14 @@ function resizeImage(dataUrl, maxPx, quality) {
   });
 }
 
-// ── Assess ────────────────────────────────────────────────────────────────────
-function scCls(s) { return s >= 4 ? 's-high' : s >= 3.5 ? 's-mid' : 's-low'; }
+// ── Scoring helpers ───────────────────────────────────────────────────────────
+function scCls(s) { return s >= 4 ? 'sh' : s >= 3.5 ? 'sm' : 'sl'; }
 function ovCol(s) { return s >= 4 ? 'var(--green-dark)' : s >= 3.5 ? '#633806' : 'var(--red)'; }
 
+// ── Parse API response ────────────────────────────────────────────────────────
 function parseBlocks(text) {
-  // If no IMAGE_START markers found, the model returned unexpected output
   const blocks = text.split('---IMAGE_START---').slice(1);
-  if (!blocks.length) return [{ parseError: true, rawText: text }];
-
+  if (!blocks.length) return [{ parseError: true }];
   return blocks.map(block => {
     const c = block.split('---IMAGE_END---')[0].trim();
     const g = k => { const m = c.match(new RegExp(k + ':\\s*(.+)')); return m ? m[1].trim() : ''; };
@@ -450,25 +433,22 @@ function parseBlocks(text) {
     const form = parseFloat(g('FORM'));
     const overall = parseFloat(g('OVERALL'));
     const iss = g('ISSUES'), rec = g('RECS');
-
-    // Detect parse failure — any score missing or 0 means format wasn't followed
-    const parseFailed = isNaN(health) || isNaN(maintenance) || isNaN(form) || isNaN(overall)
-                     || health === 0 || maintenance === 0 || form === 0 || overall === 0;
-
+    const bad = isNaN(health) || isNaN(maintenance) || isNaN(form) || isNaN(overall)
+             || health === 0 || maintenance === 0 || form === 0 || overall === 0;
     return {
       plantId: g('PLANT_ID') || 'Unknown',
-      health: parseFailed ? null : health,
-      maintenance: parseFailed ? null : maintenance,
-      form: parseFailed ? null : form,
-      overall: parseFailed ? null : overall,
+      health: bad ? null : health,
+      maintenance: bad ? null : maintenance,
+      form: bad ? null : form,
+      overall: bad ? null : overall,
       issues: iss === 'NONE' ? [] : iss.split(/[•\-\n]/).map(s => s.trim()).filter(Boolean),
       recs: rec === 'NONE' ? [] : rec.split(/[•\-\n]/).map(s => s.trim()).filter(Boolean),
-      parseError: parseFailed,
-      rawText: parseFailed ? text : null
+      parseError: bad
     };
   });
 }
 
+// ── Assessment ────────────────────────────────────────────────────────────────
 async function runAssessment() {
   if (!S.pending.length) return;
   const btn = document.getElementById('assessBtn');
@@ -487,7 +467,8 @@ async function runAssessment() {
     try {
       const resp = await fetch(API, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
           messages: [{ role: 'user', content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imgData.b64 } },
             { type: 'text', text: 'Please assess this plant display.' }
@@ -505,11 +486,12 @@ async function runAssessment() {
         S.assessments.push(entry);
         if (!S.byZone[S.zone]) S.byZone[S.zone] = [];
         S.byZone[S.zone].push(entry);
-        area.appendChild(buildResultCard(entry));
+        area.appendChild(buildCard(entry));
       }
-    } catch (e) {
+    } catch(e) {
       area.removeChild(ld);
-      area.insertAdjacentHTML('beforeend', `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>Image ${i+1} failed: ${e.message}</p></div>`);
+      area.insertAdjacentHTML('beforeend',
+        `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>Image ${i+1} failed: ${e.message}</p></div>`);
     }
   }
   btn.disabled = false;
@@ -517,38 +499,34 @@ async function runAssessment() {
   autoSave();
 }
 
-function buildResultCard(e) {
+function buildCard(e) {
   const d = document.createElement('div');
   d.className = 'card';
-
   if (e.parseError) {
     d.innerHTML = `
       ${e.dataUrl ? `<img src="${e.dataUrl}" class="card-img" alt="Plant image" />` : ''}
       <div class="img-num">Image ${e.imageNum}</div>
-      <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:var(--radius-sm);padding:12px;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:600;color:#5D4037;margin-bottom:4px"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Assessment format error</div>
-        <div style="font-size:12px;color:#6D4C41;line-height:1.5">The model returned an unexpected response for this image. This can happen with complex or unusual displays. Please tap Retry to assess this image again.</div>
+      <div class="warn-box">
+        <div class="wt"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Assessment format error</div>
+        <div class="wb">The model returned an unexpected response. Tap Retry to try again.</div>
       </div>
-      <button class="btn btn-outline" style="margin-top:0" onclick="retryImage(${e.imageNum - 1})">
-        <i class="fa-solid fa-rotate-right"></i> Retry assessment
-      </button>
-    `;
+      <button class="btn btn-outline" style="margin-top:0" onclick="retryAssessment(${e.imageNum - 1})">
+        <i class="fa-solid fa-rotate-right"></i> Retry
+      </button>`;
     return d;
   }
-
   d.innerHTML = `
     ${e.dataUrl ? `<img src="${e.dataUrl}" class="card-img" alt="${e.plantId}" />` : ''}
     <div class="img-num">Image ${e.imageNum}</div>
     <div class="plant-name">${e.plantId}</div>
     <div class="scores">
-      <span class="score-pill ${scCls(e.health)}">Health ${e.health}/5</span>
-      <span class="score-pill ${scCls(e.maintenance)}">Maintenance ${e.maintenance}/5</span>
-      <span class="score-pill ${scCls(e.form)}">Form ${e.form}/5</span>
+      <span class="sp ${scCls(e.health)}">Health ${e.health}/5</span>
+      <span class="sp ${scCls(e.maintenance)}">Maintenance ${e.maintenance}/5</span>
+      <span class="sp ${scCls(e.form)}">Form ${e.form}/5</span>
     </div>
     <div class="overall" style="color:${ovCol(e.overall)}">Overall: ${e.overall}/5</div>
-    ${e.issues.length ? `<div class="issues-label">Issues observed</div><div class="issues-body">${e.issues.map(x=>'• '+x).join('<br>')}</div>` : ''}
-    ${e.recs.length ? `<div class="rec-box"><div class="rec-label">Recommendations</div><div class="rec-body">${e.recs.map(x=>'• '+x).join('<br>')}</div></div>` : ''}
-  `;
+    ${e.issues.length ? `<div class="ilbl">Issues observed</div><div class="ibody">${e.issues.map(x=>'• '+x).join('<br>')}</div>` : ''}
+    ${e.recs.length ? `<div class="rbox"><div class="rlbl">Recommendations</div><div class="rbody">${e.recs.map(x=>'• '+x).join('<br>')}</div></div>` : ''}`;
   return d;
 }
 
@@ -559,39 +537,19 @@ function mkLoader(msg) {
   return d;
 }
 
-// Retry a failed assessment — re-sends the stored image for that slot
-async function retryImage(assessmentIndex) {
-  const entry = S.assessments[assessmentIndex];
-  if (!entry || !entry.parseError) return;
-
-  // Find the card in the DOM and replace with loader
+async function retryAssessment(idx) {
+  const entry = S.assessments[idx];
+  if (!entry || !entry.parseError || !entry.dataUrl) { toast('Please re-upload image to retry'); return; }
   const area = document.getElementById('resultsArea');
   const cards = area.querySelectorAll('.card');
-  // Find card by image number
-  const targetCard = Array.from(cards).find(c => {
-    const numEl = c.querySelector('.img-num');
-    return numEl && numEl.textContent.includes('Image ' + entry.imageNum);
-  });
-
+  const target = Array.from(cards).find(c => c.querySelector('.img-num')?.textContent.includes('Image ' + entry.imageNum));
   const ld = mkLoader('Retrying image ' + entry.imageNum + '…');
-  if (targetCard) area.replaceChild(ld, targetCard);
-  else area.appendChild(ld);
-
-  // We don't have the original b64 after a parse error (dataUrl was stripped on save)
-  // so prompt the user to re-upload if no dataUrl available
-  if (!entry.dataUrl) {
-    area.replaceChild(
-      (() => { const d = document.createElement('div'); d.className='card';
-        d.innerHTML='<div class="img-num">Image '+entry.imageNum+'</div><div style="font-size:13px;color:var(--text-mid);padding:8px 0">To retry, please re-upload this image using the upload buttons above.</div>'; return d; })(),
-      ld
-    );
-    return;
-  }
-
+  if (target) area.replaceChild(ld, target); else area.appendChild(ld);
   try {
     const resp = await fetch(API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
         messages: [{ role: 'user', content: [
           { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: entry.dataUrl.split(',')[1] } },
           { type: 'text', text: 'Please assess this plant display.' }
@@ -599,29 +557,22 @@ async function retryImage(assessmentIndex) {
       })
     });
     const data = await resp.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    if (data.error) throw new Error(data.error.message);
     const results = parseBlocks(data.content.map(c => c.text || '').join(''));
     const r = results[0];
     if (r && !r.parseError) {
-      const updated = { ...entry, ...r, parseError: false, rawText: null };
-      S.assessments[assessmentIndex] = updated;
-      // Update byZone too
-      const zoneEntries = S.byZone[entry.zone];
-      if (zoneEntries) {
-        const zi = zoneEntries.findIndex(e => e.imageNum === entry.imageNum);
+      const updated = { ...entry, ...r, parseError: false };
+      S.assessments[idx] = updated;
+      if (S.byZone[entry.zone]) {
+        const zi = S.byZone[entry.zone].findIndex(e => e.imageNum === entry.imageNum);
         if (zi !== -1) S.byZone[entry.zone][zi] = updated;
       }
-      const newCard = buildResultCard(updated);
-      area.replaceChild(newCard, ld);
-      updateStats();
+      area.replaceChild(buildCard(updated), ld);
+      updateStats(); autoSave();
       toast('Image ' + entry.imageNum + ' reassessed');
-    } else {
-      throw new Error('Format error on retry');
-    }
+    } else throw new Error('Format error on retry');
   } catch(e) {
-    const errDiv = document.createElement('div');
-    errDiv.className = 'card';
-    errDiv.innerHTML = '<div class="img-num">Image '+entry.imageNum+'</div><div style="color:var(--red);font-size:13px">Retry failed: '+e.message+'</div><button class="btn btn-outline" style="margin-top:8px" onclick="retryImage('+assessmentIndex+')"><i class="fa-solid fa-rotate-right"></i> Try again</button>';
+    const errDiv = mkLoader('Retry failed: ' + e.message);
     area.replaceChild(errDiv, ld);
   }
 }
@@ -634,28 +585,31 @@ async function doZoneEnd() {
   const sumArea = document.getElementById('summaryArea');
   const ld = mkLoader('Generating zone summary…');
   sumArea.appendChild(ld);
-  const avg = (entries.reduce((s,e) => s+e.overall, 0) / entries.length).toFixed(1);
-  const sd = entries.map(e => `Image ${e.imageNum}: ${e.plantId} — ${e.overall}/5. Issues: ${e.issues.join('; ')||'none'}`).join('\n');
-  const notes = (S.notes[zone]||[]).join('; ') || 'none';
+  const avg = (entries.reduce((s,e) => s + e.overall, 0) / entries.length).toFixed(1);
+  const sd = entries.map(e => `Image ${e.imageNum}: ${e.plantId} — ${e.overall}/5. Issues: ${e.issues.join('; ') || 'none'}`).join('\n');
+  const notes = (S.notes[zone] || []).join('; ') || 'none';
   try {
-    const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:600,
-        messages:[{ role:'user', content:`PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentences on key trends and observations. Do NOT mention scores, averages, or numbers — these appear in the heading. Focus on plant condition, presentation, and maintenance themes only.]\nPRIORITY: [action-focused bullets for displays scoring ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
+    const resp = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 600,
+        messages: [{ role: 'user', content: `PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentences on key trends and observations. Do NOT mention scores, averages, or numbers. Focus on plant condition, presentation, and maintenance themes only.]\nPRIORITY: [action-focused bullets for displays scoring ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
       })
     });
     const data = await resp.json();
-    const text = data.content.map(c=>c.text||'').join('');
-    const gf = k => { const m = text.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():''; };
-    const obs=gf('OBS'), pri=gf('PRIORITY'), nt=gf('NOTES');
-    S.zoneSums[zone] = { avg, obs, priority:pri, notes:nt };
+    const text = data.content.map(c => c.text || '').join('');
+    const gf = k => { const m = text.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
+    const obs = gf('OBS'), pri = gf('PRIORITY'), nt = gf('NOTES');
+    S.zoneSums[zone] = { avg, obs, priority: pri, notes: nt };
     sumArea.removeChild(ld);
     sumArea.innerHTML = `
       <div class="sum-card"><div class="avg-num">${avg}<span style="font-size:18px;color:var(--text-light)">/5</span></div><div class="avg-label">${zone} — zone average</div></div>
       <div class="sum-card"><div class="sum-title">Brief observations</div><div class="sum-body">${obs}</div></div>
-      ${pri&&pri!=='NONE'?`<div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${pri.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>`:''}
-      ${nt&&nt!=='NONE'?`<div class="sum-card"><div class="sum-title">Notes</div><div class="sum-body">${nt}</div></div>`:''}
-    `;
-  } catch(e) { sumArea.removeChild(ld); sumArea.innerHTML=`<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`; }
+      ${pri && pri !== 'NONE' ? `<div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${pri.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>` : ''}
+      ${nt && nt !== 'NONE' ? `<div class="sum-card"><div class="sum-title">Notes</div><div class="sum-body">${nt}</div></div>` : ''}`;
+  } catch(e) {
+    sumArea.removeChild(ld);
+    sumArea.innerHTML = `<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`;
+  }
 }
 
 // ── Site summary ──────────────────────────────────────────────────────────────
@@ -665,28 +619,31 @@ async function doSiteEnd() {
   const sumArea = document.getElementById('summaryArea');
   const ld = mkLoader('Generating site summary…');
   sumArea.appendChild(ld);
-  const avg = (all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
-  const sd = Object.entries(S.byZone).map(([z,es])=>{
-    const za=(es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
-    return `Zone: ${z} (avg ${za}/5)\n`+es.map(e=>`  - ${e.plantId}: ${e.overall}/5`).join('\n');
+  const avg = (all.reduce((s,e) => s + e.overall, 0) / all.length).toFixed(1);
+  const sd = Object.entries(S.byZone).map(([z,es]) => {
+    const za = (es.reduce((s,e) => s + e.overall, 0) / es.length).toFixed(1);
+    return `Zone: ${z} (avg ${za}/5)\n` + es.map(e => `  - ${e.plantId}: ${e.overall}/5`).join('\n');
   }).join('\n\n');
   try {
-    const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:700,
-        messages:[{ role:'user', content:`PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentences on site-wide trends and observations. Do NOT mention scores, averages, or numbers — these appear in the heading. Focus on plant condition, presentation, and maintenance themes across all zones.]\nPRIORITY: [action-focused bullets covering the most critical issues across all zones]` }]
+    const resp = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 700,
+        messages: [{ role: 'user', content: `PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentences on site-wide trends. Do NOT mention scores, averages, or numbers. Focus on plant condition, presentation, and maintenance themes.]\nPRIORITY: [action-focused bullets covering most critical issues across all zones]` }]
       })
     });
     const data = await resp.json();
-    S.siteSumText = data.content.map(c=>c.text||'').join('');
-    const gf = k => { const m=S.siteSumText.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():''; };
+    S.siteSumText = data.content.map(c => c.text || '').join('');
+    const gf = k => { const m = S.siteSumText.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
     sumArea.removeChild(ld);
     sumArea.innerHTML = `
       <div class="sum-card"><div class="avg-num">${avg}<span style="font-size:18px;color:var(--text-light)">/5</span></div><div class="avg-label">${S.site} — site average</div></div>
       <div class="sum-card"><div class="sum-title">Site-wide observations</div><div class="sum-body">${gf('OBS')}</div></div>
-      <div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${gf('PRIORITY').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>
-    `;
+      <div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${gf('PRIORITY').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>`;
     updateStats();
-  } catch(e) { sumArea.removeChild(ld); sumArea.innerHTML=`<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`; }
+  } catch(e) {
+    sumArea.removeChild(ld);
+    sumArea.innerHTML = `<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`;
+  }
 }
 
 // ── Zones panel ───────────────────────────────────────────────────────────────
@@ -696,42 +653,38 @@ function renderZones() {
   if (!zones.length) { el.innerHTML = '<div class="empty"><i class="fa-solid fa-layer-group"></i><p>No zones assessed yet</p></div>'; return; }
   el.innerHTML = zones.map(z => {
     const es = S.byZone[z];
-    const za = (es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
+    const za = (es.reduce((s,e) => s + e.overall, 0) / es.length).toFixed(1);
     const zs = S.zoneSums[z];
+    const zid = 'zp_' + z.replace(/\W/g,'_');
     return `<div class="zone-panel">
-      <div class="zone-panel-hdr" onclick="toggleZonePanel('zp-${z.replace(/\s/g,'_')}')">
+      <div class="zp-hdr" onclick="toggleZP('${zid}')">
         <h3><i class="fa-solid fa-location-dot" style="color:var(--green);margin-right:6px"></i>${z}</h3>
         <span class="za">${es.length} plant${es.length>1?'s':''} · avg ${za}/5 <i class="fa-solid fa-chevron-down" style="margin-left:4px;font-size:10px"></i></span>
       </div>
-      <div class="zone-panel-body" id="zp-${z.replace(/\s/g,'_')}">
-        ${es.map(e=>`
+      <div class="zp-body" id="${zid}">
+        ${es.map(e => `
           <div class="hist-item">
-            ${e.dataUrl?`<img src="${e.dataUrl}" class="hist-thumb" alt="${e.plantId}" />`:`<div class="hist-thumb-placeholder"><i class="fa-solid fa-leaf" style="color:var(--text-light)"></i></div>`}
+            ${e.dataUrl ? `<img src="${e.dataUrl}" class="hist-thumb" alt="${e.plantId}" />` : `<div class="hist-ph"><i class="fa-solid fa-leaf" style="color:var(--text-light)"></i></div>`}
             <div class="hist-info">
               <div class="hist-name">${e.plantId}</div>
               <div class="hist-meta">Image ${e.imageNum} · <span style="color:${ovCol(e.overall)};font-weight:700">${e.overall}/5</span></div>
               <div class="hist-pills">
-                <span class="score-pill ${scCls(e.health)}" style="font-size:10px;padding:2px 7px">H ${e.health}</span>
-                <span class="score-pill ${scCls(e.maintenance)}" style="font-size:10px;padding:2px 7px">M ${e.maintenance}</span>
-                <span class="score-pill ${scCls(e.form)}" style="font-size:10px;padding:2px 7px">F ${e.form}</span>
+                <span class="sp ${scCls(e.health)}" style="font-size:10px;padding:2px 7px">H ${e.health}</span>
+                <span class="sp ${scCls(e.maintenance)}" style="font-size:10px;padding:2px 7px">M ${e.maintenance}</span>
+                <span class="sp ${scCls(e.form)}" style="font-size:10px;padding:2px 7px">F ${e.form}</span>
               </div>
             </div>
-          </div>
-        `).join('')}
-        ${zs ? `<div style="margin-top:10px;padding:10px;background:var(--bg-off);border-radius:var(--radius-sm)">
+          </div>`).join('')}
+        ${zs ? `<div style="margin-top:10px;padding:10px;background:var(--bg-off);border-radius:var(--rs)">
           <div style="font-size:11px;font-weight:700;margin-bottom:4px">Zone summary</div>
           <div style="font-size:12px;color:var(--text-mid)">${zs.obs}</div>
-          ${zs.priority&&zs.priority!=='NONE'?`<div style="font-size:11px;font-weight:700;margin:6px 0 3px">Priority actions</div><div style="font-size:12px;color:var(--text-mid)">${zs.priority.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div>`:''}
-        </div>` : '<div style="font-size:12px;color:var(--text-light);margin-top:8px;font-style:italic">No zone summary yet — tap Zone summary on the Audit tab.</div>'}
+          ${zs.priority && zs.priority !== 'NONE' ? `<div style="font-size:11px;font-weight:700;margin:6px 0 3px">Priority actions</div><div style="font-size:12px;color:var(--text-mid)">${zs.priority.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div>` : ''}
+        </div>` : '<div style="font-size:12px;color:var(--text-light);margin-top:8px;font-style:italic">No zone summary yet.</div>'}
       </div>
     </div>`;
   }).join('');
 }
-
-function toggleZonePanel(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
-}
+function toggleZP(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
 
 // ── Notes ─────────────────────────────────────────────────────────────────────
 function addNote() {
@@ -742,24 +695,20 @@ function addNote() {
   document.getElementById('noteText').value = '';
   renderNotes(); toast('Note added');
 }
-
 function renderNotes() {
   const el = document.getElementById('notesList');
   const zones = Object.keys(S.notes);
   if (!zones.length) { el.innerHTML = '<div class="empty"><i class="fa-solid fa-note-sticky"></i><p>No notes yet</p></div>'; return; }
   el.innerHTML = zones.map(z => `
-    <div class="zone-group">
-      <div class="zone-group-title">${z}</div>
+    <div class="zgroup">
+      <div class="zgroup-title">${z}</div>
       ${S.notes[z].map((n,i) => `
         <div class="note-item">
           <span class="note-text">${n}</span>
           <button class="note-del" onclick="deleteNote('${z}',${i})"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+        </div>`).join('')}
+    </div>`).join('');
 }
-
 function deleteNote(zone, idx) {
   S.notes[zone].splice(idx, 1);
   if (!S.notes[zone].length) delete S.notes[zone];
@@ -772,93 +721,65 @@ function updateStats() {
   if (!el) return;
   const all = S.assessments, zones = Object.keys(S.byZone);
   if (!all.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light)">No assessments recorded yet</div>'; return; }
-  const avg = (all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
+  const avg = (all.reduce((s,e) => s + e.overall, 0) / all.length).toFixed(1);
   el.innerHTML = `
     <div class="stat-row"><span class="stat-label">Plants assessed</span><span class="stat-val">${all.length}</span></div>
     <div class="stat-row"><span class="stat-label">Zones covered</span><span class="stat-val">${zones.length}</span></div>
     <div class="stat-row"><span class="stat-label">Site average</span><span class="stat-val" style="color:${ovCol(parseFloat(avg))}">${avg}/5</span></div>
-    <div class="stat-row"><span class="stat-label">Notes recorded</span><span class="stat-val">${Object.values(S.notes).flat().length}</span></div>
-  `;
+    <div class="stat-row"><span class="stat-label">Notes recorded</span><span class="stat-val">${Object.values(S.notes).flat().length}</span></div>`;
 }
 
-// ── Save / load audits ────────────────────────────────────────────────────────
-function getSavedAudits() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
-}
+// ── Save / load ───────────────────────────────────────────────────────────────
+function getSaved() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e) { return []; } }
 
 async function autoSave() {
-  // Silent auto-save after every assessment
   if (!S.assessments.length) return;
-  try { await saveAuditData('autosave'); } catch(e) { console.warn('Auto-save failed:', e); }
+  try { await persistAudit('autosave'); } catch(e) { console.warn('Auto-save failed', e); }
 }
 
 async function saveAudit() {
   if (!S.assessments.length) { toast('Nothing to save yet'); return; }
   try {
     const id = 'audit_' + Date.now();
-    await saveAuditData(id);
+    await persistAudit(id);
     toast('Audit saved');
     renderSetupSaved();
-  } catch(e) {
-    toast('Save failed: ' + (e.message || 'storage error'));
-    console.error('Save error:', e);
-  }
+  } catch(e) { toast('Save failed: ' + (e.message || 'storage error')); }
 }
 
-async function saveAuditData(id) {
-  const audits = getSavedAudits();
-  const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
-
-  // Save images to IndexedDB separately (handles large binary data)
+async function persistAudit(id) {
+  const audits = getSaved();
+  const avg = (S.assessments.reduce((s,e) => s + e.overall, 0) / S.assessments.length).toFixed(1);
+  // Save images to IndexedDB
   for (const entry of S.assessments) {
-    if (entry.dataUrl) {
-      await idbSet('img_' + id + '_' + entry.imageNum, entry.dataUrl);
-    }
+    if (entry.dataUrl) await idbSet('img_' + id + '_' + entry.imageNum, entry.dataUrl);
   }
-
-  // Strip dataUrl from localStorage state (keep it lean)
-  const lightState = JSON.parse(JSON.stringify(S));
-  lightState.assessments = lightState.assessments.map(e => ({ ...e, dataUrl: null }));
-  Object.keys(lightState.byZone).forEach(z => {
-    lightState.byZone[z] = lightState.byZone[z].map(e => ({ ...e, dataUrl: null }));
-  });
-
-  // Remove old autosave entry if this is a manual save
-  const filtered = id === 'autosave'
-    ? audits.filter(a => a.id !== 'autosave')
-    : audits.filter(a => a.id !== 'autosave' && a.id !== id);
-
-  filtered.unshift({
-    id, site: S.site, auditor: S.auditor,
-    date: new Date().toISOString(), avg,
-    zones: Object.keys(S.byZone).length,
-    plants: S.assessments.length,
-    isAutosave: id === 'autosave',
-    state: lightState
-  });
+  // Lean state for localStorage
+  const lean = JSON.parse(JSON.stringify(S));
+  lean.assessments = lean.assessments.map(e => ({ ...e, dataUrl: null }));
+  Object.keys(lean.byZone).forEach(z => { lean.byZone[z] = lean.byZone[z].map(e => ({ ...e, dataUrl: null })); });
+  const filtered = id === 'autosave' ? audits.filter(a => a.id !== 'autosave') : audits.filter(a => a.id !== id);
+  filtered.unshift({ id, site: S.site, auditor: S.auditor, date: new Date().toISOString(), avg, zones: Object.keys(S.byZone).length, plants: S.assessments.length, isAutosave: id === 'autosave', state: lean });
   if (filtered.length > 20) filtered.length = 20;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  localStorage.setItem(LS_KEY, JSON.stringify(filtered));
 }
 
 async function loadAudit(id) {
-  const audits = getSavedAudits();
+  const audits = getSaved();
   const saved = audits.find(a => a.id === id);
   if (!saved) { toast('Audit not found'); return; }
   S = JSON.parse(JSON.stringify(saved.state));
-
   // Restore images from IndexedDB
   for (const entry of S.assessments) {
     const img = await idbGet('img_' + id + '_' + entry.imageNum);
     if (img) {
       entry.dataUrl = img;
-      // Also restore in byZone
       if (S.byZone[entry.zone]) {
         const ze = S.byZone[entry.zone].find(e => e.imageNum === entry.imageNum);
         if (ze) ze.dataUrl = img;
       }
     }
   }
-
   refreshHeaders();
   document.getElementById('resultsArea').innerHTML = '';
   document.getElementById('summaryArea').innerHTML = '';
@@ -873,9 +794,9 @@ async function loadAudit(id) {
 }
 
 function deleteSavedAudit(id) {
-  showModal('Delete audit', 'Are you sure you want to delete this saved audit? This cannot be undone.', () => {
-    const audits = getSavedAudits().filter(a => a.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
+  showModal('Delete audit', 'Are you sure? This cannot be undone.', () => {
+    const audits = getSaved().filter(a => a.id !== id);
+    localStorage.setItem(LS_KEY, JSON.stringify(audits));
     renderSetupSaved(); toast('Audit deleted');
   });
 }
@@ -883,14 +804,14 @@ function deleteSavedAudit(id) {
 function renderSetupSaved() {
   const el = document.getElementById('setupSavedList');
   if (!el) return;
-  const audits = getSavedAudits();
+  const audits = getSaved();
   if (!audits.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light);text-align:center;padding:12px 0">No saved audits</div>'; return; }
   el.innerHTML = audits.map(a => {
-    const date = new Date(a.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
-    const autosaveBadge = a.isAutosave ? '<span style="font-size:10px;background:#E1F5EE;color:#085041;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:600">AUTO</span>' : '';
+    const date = new Date(a.date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const badge = a.isAutosave ? '<span style="font-size:10px;background:var(--green-bg);color:var(--green-dark);padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:600">AUTO</span>' : '';
     return `<div class="saved-item">
       <div class="saved-info">
-        <div class="saved-name">${a.site}${autosaveBadge}</div>
+        <div class="saved-name">${a.site}${badge}</div>
         <div class="saved-meta">${a.auditor} · ${date} · ${a.plants} plant${a.plants>1?'s':''} · ${a.zones} zone${a.zones>1?'s':''} · avg ${a.avg}/5</div>
       </div>
       <div class="saved-actions">
@@ -903,11 +824,9 @@ function renderSetupSaved() {
 
 // ── New audit ─────────────────────────────────────────────────────────────────
 function confirmNewAudit() {
-  showModal('Start new audit', 'This will clear the current audit. Make sure you have saved or exported it first.', () => {
+  showModal('Start new audit', 'This will clear the current audit. Save first if needed.', () => {
     S = { site:'', zone:'', auditor:'', pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
-    document.getElementById('siteName').value = '';
-    document.getElementById('zoneName').value = '';
-    document.getElementById('auditorName').value = '';
+    ['siteName','zoneName','auditorName'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('resultsArea').innerHTML = '';
     document.getElementById('summaryArea').innerHTML = '';
     document.getElementById('s-main').classList.remove('active');
@@ -940,98 +859,105 @@ async function exportPDF() {
   const status = document.getElementById('pdfStatus');
   status.textContent = 'Building PDF…';
   const doc = new jsPDF({ unit:'mm', format:'a4' });
-  const ML=15, MR=15, MT=15, PW=210, CW=PW-ML-MR;
+  const ML=15,MR=15,MT=15,PW=210,CW=PW-ML-MR;
   let y = MT;
   const GREEN='#0F6E56',DARK='#1a1a1a',MID='#555',LIGHT='#888',RULE='#ddd',OFFBG='#f8f8f6';
-  function chk(n) { if(y+n>282){doc.addPage();y=MT;} }
-  function rl() { doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.line(ML,y,PW-MR,y); }
-  function scCol(s){return s>=4?'#085041':s>=3.5?'#633806':'#791F1F';}
-  function scBg(s){return s>=4?'#E1F5EE':s>=3.5?'#FAEEDA':'#FCEBEB';}
+  const chk = n => { if (y+n > 282) { doc.addPage(); y = MT; } };
+  const rl = () => { doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.line(ML,y,PW-MR,y); };
+  const scCol = s => s>=4?'#085041':s>=3.5?'#633806':'#791F1F';
+  const scBg  = s => s>=4?'#E1F5EE':s>=3.5?'#FAEEDA':'#FCEBEB';
 
-  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(DARK);
-  doc.text('PlantScore Audit Report',ML,y);y+=8;
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(LIGHT);
-  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Zones: '+Object.keys(S.byZone).join(' · '),ML,y);y+=5;
-  rl();y+=6;
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(DARK);
+  doc.text('PlantScore Audit Report', ML, y); y+=8;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
+  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Zones: '+Object.keys(S.byZone).join(' · ')+'   Date: '+new Date().toLocaleDateString('en-GB'), ML, y); y+=5;
+  rl(); y+=6;
 
   for (const zone of Object.keys(S.byZone)) {
     const es = S.byZone[zone];
     const za = (es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
     chk(14);
-    doc.setFillColor(OFFBG);doc.roundedRect(ML,y,CW,11,2,2,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(DARK);doc.text(zone,ML+4,y+7.5);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(MID);
-    doc.text('Zone average: '+za+' / 5',PW-MR-4,y+7.5,{align:'right'});y+=15;
+    doc.setFillColor(OFFBG); doc.roundedRect(ML,y,CW,11,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(DARK); doc.text(zone, ML+4, y+7.5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(MID);
+    doc.text('Zone average: '+za+' / 5', PW-MR-4, y+7.5, {align:'right'}); y+=15;
 
-    for (const entry of es) {
-      const hasI=entry.issues.length>0, hasR=entry.recs.length>0;
-      const tH=40+(hasI?entry.issues.slice(0,4).length*4.5:0)+(hasR?entry.recs.slice(0,3).length*4.5+8:0);
+    for (const e of es) {
+      if (e.parseError) continue;
+      const hasI=e.issues.length>0, hasR=e.recs.length>0;
+      const tH=40+(hasI?e.issues.slice(0,4).length*4.5:0)+(hasR?e.recs.slice(0,3).length*4.5+8:0);
       const cH=Math.max(60,tH);
       chk(cH+6);
-      doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,cH,2,2,'S');
-      if(entry.dataUrl){try{doc.addImage(entry.dataUrl,'JPEG',ML+3,y+3,34,cH-6,undefined,'FAST');}catch(e){}}
+      doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.roundedRect(ML,y,CW,cH,2,2,'S');
+      if (e.dataUrl) { try { doc.addImage(e.dataUrl,'JPEG',ML+3,y+3,34,cH-6,undefined,'FAST'); } catch(err){} }
       const tx=ML+40;
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(LIGHT);doc.text('Image '+entry.imageNum,tx,y+6);
-      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);
-      doc.text(doc.splitTextToSize(entry.plantId,CW-tx+ML-4),tx,y+11);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(LIGHT); doc.text('Image '+e.imageNum, tx, y+6);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(DARK);
+      doc.text(doc.splitTextToSize(e.plantId, CW-tx+ML-4), tx, y+11);
       let px=tx;
-      [['Health',entry.health],['Maint.',entry.maintenance],['Form',entry.form]].forEach(([l,v])=>{
-        const pw=27;doc.setFillColor(scBg(v));doc.roundedRect(px,y+16,pw,6,1,1,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(scCol(v));
-        doc.text(l+' '+v+'/5',px+pw/2,y+20.2,{align:'center'});px+=pw+2;
+      [['Health',e.health],['Maint.',e.maintenance],['Form',e.form]].forEach(([l,val])=>{
+        const pw=27; doc.setFillColor(scBg(val)); doc.roundedRect(px,y+16,pw,6,1,1,'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(scCol(val));
+        doc.text(l+' '+val+'/5', px+pw/2, y+20.2, {align:'center'}); px+=pw+2;
       });
-      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(scCol(entry.overall));
-      doc.text('Overall: '+entry.overall+'/5',tx,y+30);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(scCol(e.overall));
+      doc.text('Overall: '+e.overall+'/5', tx, y+30);
       let ty=y+36;
-      if(hasI){
-        doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(MID);doc.text('Issues observed',tx,ty);ty+=4.5;
-        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);
-        entry.issues.slice(0,4).forEach(iss=>{const ls=doc.splitTextToSize('• '+iss,CW-tx+ML-5);doc.text(ls,tx,ty);ty+=ls.length*4;});
+      if (hasI) {
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(MID); doc.text('Issues observed', tx, ty); ty+=4.5;
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(MID);
+        e.issues.slice(0,4).forEach(iss=>{ const ls=doc.splitTextToSize('• '+iss,CW-tx+ML-5); doc.text(ls,tx,ty); ty+=ls.length*4; });
       }
-      if(hasR){
-        ty+=2;doc.setFillColor('#f5f5f3');doc.rect(tx-1,ty-2,CW-tx+ML-1,entry.recs.slice(0,3).length*4+10,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(DARK);doc.text('Recommendations',tx,ty+3);ty+=7;
-        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);
-        entry.recs.slice(0,3).forEach(r=>{const ls=doc.splitTextToSize('• '+r,CW-tx+ML-5);doc.text(ls,tx,ty);ty+=ls.length*4;});
+      if (hasR) {
+        ty+=2; doc.setFillColor('#f5f5f3'); doc.rect(tx-1,ty-2,CW-tx+ML-1,e.recs.slice(0,3).length*4+10,'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(DARK); doc.text('Recommendations', tx, ty+3); ty+=7;
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(MID);
+        e.recs.slice(0,3).forEach(r=>{ const ls=doc.splitTextToSize('• '+r,CW-tx+ML-5); doc.text(ls,tx,ty); ty+=ls.length*4; });
       }
       y+=cH+5;
     }
 
-    const zs=S.zoneSums[zone];
-    if(zs){
+    const zs = S.zoneSums[zone];
+    if (zs) {
       chk(36);
       const obsL=doc.splitTextToSize(zs.obs||'',CW-8);
       const priL=zs.priority&&zs.priority!=='NONE'?doc.splitTextToSize(zs.priority,CW-8):[];
       const bh=14+obsL.length*4.5+(priL.length?priL.length*4+8:0);
-      doc.setFillColor('#fafafa');doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,bh,2,2,'FD');
-      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);doc.text('Zone summary',ML+4,y+7);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(MID);doc.text(obsL,ML+4,y+13);
-      if(priL.length){const py=y+13+obsL.length*4.5+2;doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(DARK);doc.text('Priority actions',ML+4,py);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);doc.text(priL,ML+4,py+5);}
+      doc.setFillColor('#fafafa'); doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.roundedRect(ML,y,CW,bh,2,2,'FD');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(DARK); doc.text('Zone summary', ML+4, y+7);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(MID); doc.text(obsL, ML+4, y+13);
+      if (priL.length) {
+        const py=y+13+obsL.length*4.5+2;
+        doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(DARK); doc.text('Priority actions', ML+4, py);
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(MID); doc.text(priL, ML+4, py+5);
+      }
       y+=bh+6;
     }
-    rl();y+=6;
+    rl(); y+=6;
   }
 
-  if(S.siteSumText){
+  if (S.siteSumText) {
     const avg=(all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
     chk(20);
-    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(DARK);doc.text('Final site summary — '+S.site,ML,y);y+=8;
-    doc.setFontSize(24);doc.setTextColor(GREEN);doc.text(avg+' / 5',ML,y);y+=6;
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(LIGHT);doc.text('Site average score',ML,y);y+=10;
-    const gf=k=>{const m=S.siteSumText.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)'));return m?m[1].trim():'';};
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(DARK);
+    doc.text('Final site summary — '+S.site, ML, y); y+=8;
+    doc.setFontSize(24); doc.setTextColor(GREEN); doc.text(avg+' / 5', ML, y); y+=6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(LIGHT); doc.text('Site average score', ML, y); y+=10;
+    const gf = k => { const m=S.siteSumText.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():''; };
     [['Site-wide observations',gf('OBS')],['Priority actions',gf('PRIORITY')]].forEach(([title,body])=>{
-      if(!body)return;chk(30);
+      if (!body) return; chk(30);
       const lines=doc.splitTextToSize(body.replace(/\n/g,' '),CW-8);
       const bh=lines.length*4.5+14;
-      doc.setFillColor('#fafafa');doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,bh,2,2,'FD');
-      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);doc.text(title,ML+4,y+7);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(MID);doc.text(lines,ML+4,y+13);y+=bh+5;
+      doc.setFillColor('#fafafa'); doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.roundedRect(ML,y,CW,bh,2,2,'FD');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(DARK); doc.text(title, ML+4, y+7);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(MID); doc.text(lines, ML+4, y+13);
+      y+=bh+5;
     });
   }
 
   const fname='PlantScore_'+S.site.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
   doc.save(fname);
-  status.innerHTML = '✓ Downloaded: '+fname+' &nbsp;<button onclick="switchTab('audit')" style="font-size:12px;padding:4px 10px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;margin-left:4px">Back to audit</button>';
+  status.innerHTML = '✓ Downloaded: '+fname+' &nbsp;<button onclick="switchTab(\'audit\')" style="font-size:12px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;margin-left:4px">Back to audit</button>';
   toast('PDF saved');
 }
 
