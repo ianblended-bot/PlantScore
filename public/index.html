@@ -143,7 +143,7 @@
     <div class="field"><label>Auditor name</label><input id="auditorName" type="text" placeholder="Your name" autocomplete="off" /></div>
     <button class="btn btn-primary" onclick="startAudit()" style="margin-top:8px"><i class="fa-solid fa-leaf"></i> Start audit</button>
     <hr class="divider" />
-    <div class="section-label">Saved audits</div>
+    <div class="section-label"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px;color:var(--green)"></i>Resume a saved audit</div>
     <div id="setupSavedList"></div>
   </div>
 </div>
@@ -223,7 +223,7 @@
     <button class="btn btn-outline" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
     <button class="btn btn-outline" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
     <hr class="divider" />
-    <button class="btn btn-outline" onclick="saveAudit()"><i class="fa-solid fa-floppy-disk"></i> Save audit</button>
+    <button class="btn btn-outline" onclick="saveAudit()"><i class="fa-solid fa-floppy-disk"></i> Save &amp; resume later</button>
     <button class="btn btn-danger" onclick="confirmNewAudit()"><i class="fa-solid fa-plus"></i> New audit</button>
   </div>
 
@@ -259,30 +259,37 @@ const STORAGE_KEY = 'plantscore_audits';
 // ── Scoring system prompt — calibrated for accuracy ──────────────────────────
 const SYSP = `You are a professional plant display auditor conducting a PlantScore audit.
 
-SCORING SCALE (use the full range):
+SCORING SCALE:
 1 = Very poor. Severely unhealthy, neglected, or near dead.
 2 = Poor. Significant visible problems requiring urgent attention.
-3 = Average / acceptable. Some issues present but plant is functional.
-4 = Good commercial quality. Healthy, well-maintained, presentable. This is the target standard.
+3 = Average. Some issues present but plant is functional and presentable.
+4 = Good commercial quality. Healthy, well-maintained, presentable. THIS IS THE TARGET STANDARD.
 5 = Exceptional / near perfect. Reserve only for outstanding specimens.
 
-IMPORTANT CALIBRATION:
-- Most well-maintained indoor plants in a professional setting should score 3.5–4.5
-- Do NOT default to low scores. A plant that looks healthy and well-presented scores 4.
-- Only score 1–2 if there is clear, visible evidence of serious problems.
-- Score what you can SEE. Do not penalise for conditions not visible in the image.
-- Lighting, image quality, and angle should not lower the score unless the plant itself shows problems.
+CALIBRATION:
+- A healthy, well-presented plant in a professional setting scores 4. Default to 4, not lower.
+- Only score below 3 if there is CLEAR, UNAMBIGUOUS visible evidence of serious problems.
+- Do NOT penalise for image angle, lighting, or anything not directly visible.
+- Score 5 is rare. Score 0 is NEVER valid — always give a score between 1 and 5.
 
-For EACH image output EXACTLY:
+MIXED PLANTERS:
+- If the image shows multiple species in one container or display, assess it as a SINGLE display.
+- Use PLANT_ID to list the dominant or most visible species, e.g. "Aglaonema / ZZ Plant mix"
+- Score the OVERALL presentation, health and maintenance of the display as a whole.
+- Do not refuse to score because multiple species are present.
+
+OUTPUT FORMAT — output ONLY the block below, with NO text before or after it:
 ---IMAGE_START---
-PLANT_ID: [species name]
-HEALTH: [1-5]
-MAINTENANCE: [1-5]
-FORM: [1-5]
-OVERALL: [average to 1dp]
-ISSUES: [bullet list of visible issues, or NONE]
-RECS: [bullet list of recommendations ONLY if overall ≤3, else NONE]
----IMAGE_END---`;
+PLANT_ID: [species name or mix description]
+HEALTH: [number 1-5, no text]
+MAINTENANCE: [number 1-5, no text]
+FORM: [number 1-5, no text]
+OVERALL: [average of the three scores to 1 decimal place, no text]
+ISSUES: [bullet list of visible issues, or the single word NONE]
+RECS: [bullet list of recommendations ONLY if overall ≤3, otherwise the single word NONE]
+---IMAGE_END---
+
+CRITICAL: Output NOTHING except the block above. No preamble, no explanation, no commentary.`;
 
 let S = {
   site: '', zone: '', auditor: '',
@@ -381,18 +388,33 @@ function scCls(s) { return s >= 4 ? 's-high' : s >= 3.5 ? 's-mid' : 's-low'; }
 function ovCol(s) { return s >= 4 ? 'var(--green-dark)' : s >= 3.5 ? '#633806' : 'var(--red)'; }
 
 function parseBlocks(text) {
-  return text.split('---IMAGE_START---').slice(1).map(block => {
+  // If no IMAGE_START markers found, the model returned unexpected output
+  const blocks = text.split('---IMAGE_START---').slice(1);
+  if (!blocks.length) return [{ parseError: true, rawText: text }];
+
+  return blocks.map(block => {
     const c = block.split('---IMAGE_END---')[0].trim();
     const g = k => { const m = c.match(new RegExp(k + ':\\s*(.+)')); return m ? m[1].trim() : ''; };
+    const health = parseFloat(g('HEALTH'));
+    const maintenance = parseFloat(g('MAINTENANCE'));
+    const form = parseFloat(g('FORM'));
+    const overall = parseFloat(g('OVERALL'));
     const iss = g('ISSUES'), rec = g('RECS');
+
+    // Detect parse failure — any score missing or 0 means format wasn't followed
+    const parseFailed = isNaN(health) || isNaN(maintenance) || isNaN(form) || isNaN(overall)
+                     || health === 0 || maintenance === 0 || form === 0 || overall === 0;
+
     return {
-      plantId: g('PLANT_ID'),
-      health: parseFloat(g('HEALTH')) || 0,
-      maintenance: parseFloat(g('MAINTENANCE')) || 0,
-      form: parseFloat(g('FORM')) || 0,
-      overall: parseFloat(g('OVERALL')) || 0,
+      plantId: g('PLANT_ID') || 'Unknown',
+      health: parseFailed ? null : health,
+      maintenance: parseFailed ? null : maintenance,
+      form: parseFailed ? null : form,
+      overall: parseFailed ? null : overall,
       issues: iss === 'NONE' ? [] : iss.split(/[•\-\n]/).map(s => s.trim()).filter(Boolean),
-      recs: rec === 'NONE' ? [] : rec.split(/[•\-\n]/).map(s => s.trim()).filter(Boolean)
+      recs: rec === 'NONE' ? [] : rec.split(/[•\-\n]/).map(s => s.trim()).filter(Boolean),
+      parseError: parseFailed,
+      rawText: parseFailed ? text : null
     };
   });
 }
@@ -447,6 +469,22 @@ async function runAssessment() {
 function buildResultCard(e) {
   const d = document.createElement('div');
   d.className = 'card';
+
+  if (e.parseError) {
+    d.innerHTML = `
+      ${e.dataUrl ? `<img src="${e.dataUrl}" class="card-img" alt="Plant image" />` : ''}
+      <div class="img-num">Image ${e.imageNum}</div>
+      <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:var(--radius-sm);padding:12px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;color:#5D4037;margin-bottom:4px"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Assessment format error</div>
+        <div style="font-size:12px;color:#6D4C41;line-height:1.5">The model returned an unexpected response for this image. This can happen with complex or unusual displays. Please tap Retry to assess this image again.</div>
+      </div>
+      <button class="btn btn-outline" style="margin-top:0" onclick="retryImage(${e.imageNum - 1})">
+        <i class="fa-solid fa-rotate-right"></i> Retry assessment
+      </button>
+    `;
+    return d;
+  }
+
   d.innerHTML = `
     ${e.dataUrl ? `<img src="${e.dataUrl}" class="card-img" alt="${e.plantId}" />` : ''}
     <div class="img-num">Image ${e.imageNum}</div>
@@ -468,6 +506,73 @@ function mkLoader(msg) {
   d.className = 'loading';
   d.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
   return d;
+}
+
+// Retry a failed assessment — re-sends the stored image for that slot
+async function retryImage(assessmentIndex) {
+  const entry = S.assessments[assessmentIndex];
+  if (!entry || !entry.parseError) return;
+
+  // Find the card in the DOM and replace with loader
+  const area = document.getElementById('resultsArea');
+  const cards = area.querySelectorAll('.card');
+  // Find card by image number
+  const targetCard = Array.from(cards).find(c => {
+    const numEl = c.querySelector('.img-num');
+    return numEl && numEl.textContent.includes('Image ' + entry.imageNum);
+  });
+
+  const ld = mkLoader('Retrying image ' + entry.imageNum + '…');
+  if (targetCard) area.replaceChild(ld, targetCard);
+  else area.appendChild(ld);
+
+  // We don't have the original b64 after a parse error (dataUrl was stripped on save)
+  // so prompt the user to re-upload if no dataUrl available
+  if (!entry.dataUrl) {
+    area.replaceChild(
+      (() => { const d = document.createElement('div'); d.className='card';
+        d.innerHTML='<div class="img-num">Image '+entry.imageNum+'</div><div style="font-size:13px;color:var(--text-mid);padding:8px 0">To retry, please re-upload this image using the upload buttons above.</div>'; return d; })(),
+      ld
+    );
+    return;
+  }
+
+  try {
+    const resp = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: entry.dataUrl.split(',')[1] } },
+          { type: 'text', text: 'Please assess this plant display.' }
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const results = parseBlocks(data.content.map(c => c.text || '').join(''));
+    const r = results[0];
+    if (r && !r.parseError) {
+      const updated = { ...entry, ...r, parseError: false, rawText: null };
+      S.assessments[assessmentIndex] = updated;
+      // Update byZone too
+      const zoneEntries = S.byZone[entry.zone];
+      if (zoneEntries) {
+        const zi = zoneEntries.findIndex(e => e.imageNum === entry.imageNum);
+        if (zi !== -1) S.byZone[entry.zone][zi] = updated;
+      }
+      const newCard = buildResultCard(updated);
+      area.replaceChild(newCard, ld);
+      updateStats();
+      toast('Image ' + entry.imageNum + ' reassessed');
+    } else {
+      throw new Error('Format error on retry');
+    }
+  } catch(e) {
+    const errDiv = document.createElement('div');
+    errDiv.className = 'card';
+    errDiv.innerHTML = '<div class="img-num">Image '+entry.imageNum+'</div><div style="color:var(--red);font-size:13px">Retry failed: '+e.message+'</div><button class="btn btn-outline" style="margin-top:8px" onclick="retryImage('+assessmentIndex+')"><i class="fa-solid fa-rotate-right"></i> Try again</button>';
+    area.replaceChild(errDiv, ld);
+  }
 }
 
 // ── Zone summary ──────────────────────────────────────────────────────────────
@@ -632,15 +737,35 @@ function getSavedAudits() {
 
 function saveAudit() {
   if (!S.assessments.length) { toast('Nothing to save yet'); return; }
-  const audits = getSavedAudits();
-  const id = 'audit_' + Date.now();
-  const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
-  audits.unshift({ id, site:S.site, auditor:S.auditor, date:new Date().toISOString(), avg, zones:Object.keys(S.byZone).length, plants:S.assessments.length, state: JSON.parse(JSON.stringify(S)) });
-  // Keep max 20 saved audits
-  if (audits.length > 20) audits.length = 20;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
-  toast('Audit saved');
-  renderSetupSaved();
+  try {
+    const audits = getSavedAudits();
+    const id = 'audit_' + Date.now();
+    const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
+
+    // Strip dataUrl (base64 images) before saving — too large for localStorage on mobile.
+    // Scores, notes, summaries and all audit data are preserved. Images won't re-display
+    // on load but the audit can be fully resumed and a PDF generated from saved data.
+    const lightState = JSON.parse(JSON.stringify(S));
+    lightState.assessments = lightState.assessments.map(e => ({ ...e, dataUrl: null }));
+    Object.keys(lightState.byZone).forEach(z => {
+      lightState.byZone[z] = lightState.byZone[z].map(e => ({ ...e, dataUrl: null }));
+    });
+
+    audits.unshift({
+      id, site: S.site, auditor: S.auditor,
+      date: new Date().toISOString(), avg,
+      zones: Object.keys(S.byZone).length,
+      plants: S.assessments.length,
+      state: lightState
+    });
+    if (audits.length > 20) audits.length = 20;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
+    toast('Audit saved');
+    renderSetupSaved();
+  } catch(e) {
+    toast('Save failed: ' + (e.message || 'storage error'));
+    console.error('Save error:', e);
+  }
 }
 
 function loadAudit(id) {
@@ -658,7 +783,15 @@ function loadAudit(id) {
   document.getElementById('s-main').classList.add('active');
   document.getElementById('mainNav').classList.add('visible');
   switchTab('zones');
-  toast('Audit loaded: ' + saved.site);
+  // Show a note that images aren't re-displayed on load but audit data is intact
+  const zEl = document.getElementById('zonesList');
+  if (zEl) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:12px;color:var(--text-light);background:var(--bg-off);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px';
+    note.innerHTML = '<i class="fa-solid fa-circle-info" style="margin-right:6px"></i>Audit resumed. All scores, notes and summaries are intact. Images are not re-displayed after loading but will appear normally if you upload new ones.';
+    zEl.prepend(note);
+  }
+  toast('Audit resumed: ' + saved.site);
 }
 
 function deleteSavedAudit(id) {
@@ -682,7 +815,7 @@ function renderSetupSaved() {
         <div class="saved-meta">${a.auditor} · ${date} · ${a.plants} plant${a.plants>1?'s':''} · ${a.zones} zone${a.zones>1?'s':''} · avg ${a.avg}/5</div>
       </div>
       <div class="saved-actions">
-        <button class="icon-btn" onclick="loadAudit('${a.id}')"><i class="fa-solid fa-folder-open"></i></button>
+        <button class="icon-btn" onclick="loadAudit('${a.id}')" style="font-size:12px;padding:6px 12px"><i class="fa-solid fa-play" style="margin-right:4px"></i>Resume</button>
         <button class="icon-btn del" onclick="deleteSavedAudit('${a.id}')"><i class="fa-solid fa-trash"></i></button>
       </div>
     </div>`;
