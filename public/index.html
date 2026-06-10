@@ -273,10 +273,10 @@ CALIBRATION:
 - Score 5 is rare. Score 0 is NEVER valid — always give a score between 1 and 5.
 
 MIXED PLANTERS:
-- If the image shows multiple species in one container or display, assess it as a SINGLE display.
-- Use PLANT_ID to list the dominant or most visible species, e.g. "Aglaonema / ZZ Plant mix"
-- Score the OVERALL presentation, health and maintenance of the display as a whole.
-- Do not refuse to score because multiple species are present.
+- If the image shows multiple species in one container, assess it as a single display.
+- Use PLANT_ID to name the dominant species only, or describe briefly e.g. "Mixed tropical display".
+- Score the overall presentation as a whole. Do not refuse to score.
+- Do not mention mixed planting in summaries unless it is directly relevant to a specific issue.
 
 OUTPUT FORMAT — output ONLY the block below, with NO text before or after it:
 ---IMAGE_START---
@@ -589,7 +589,7 @@ async function doZoneEnd() {
   try {
     const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:600,
-        messages:[{ role:'user', content:`PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentence trends]\nPRIORITY: [bullets for ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
+        messages:[{ role:'user', content:`PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentences on key trends and observations. Do NOT mention scores, averages, or numbers — these appear in the heading. Focus on plant condition, presentation, and maintenance themes only.]\nPRIORITY: [action-focused bullets for displays scoring ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
       })
     });
     const data = await resp.json();
@@ -622,7 +622,7 @@ async function doSiteEnd() {
   try {
     const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:700,
-        messages:[{ role:'user', content:`PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentence site-wide trends]\nPRIORITY: [most critical actions across all zones]` }]
+        messages:[{ role:'user', content:`PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentences on site-wide trends and observations. Do NOT mention scores, averages, or numbers — these appear in the heading. Focus on plant condition, presentation, and maintenance themes across all zones.]\nPRIORITY: [action-focused bullets covering the most critical issues across all zones]` }]
       })
     });
     const data = await resp.json();
