@@ -449,7 +449,7 @@ async function runAssessment() {
       const resp = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: SYSP, messages: [{ role: 'user', content }] })
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP, messages: [{ role: 'user', content }] })
       });
       const data = await resp.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
@@ -522,7 +522,7 @@ async function doZoneEnd() {
   try {
     const resp = await fetch(API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, messages: [{ role: 'user', content: `PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentence trends]\nPRIORITY: [bullets for ≤3 only, or NONE]\nNOTES: [notes or NONE]` }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 600, messages: [{ role: 'user', content: `PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentence trends]\nPRIORITY: [bullets for ≤3 only, or NONE]\nNOTES: [notes or NONE]` }] })
     });
     const data = await resp.json();
     const text = data.content.map(c => c.text || '').join('');
@@ -563,7 +563,7 @@ async function doSiteEnd() {
   try {
     const resp = await fetch(API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 700, messages: [{ role: 'user', content: `PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentence site-wide trends]\nPRIORITY: [most critical actions across all zones]` }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 700, messages: [{ role: 'user', content: `PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentence site-wide trends]\nPRIORITY: [most critical actions across all zones]` }] })
     });
     const data = await resp.json();
     S.siteSumText = data.content.map(c => c.text || '').join('');
