@@ -178,6 +178,9 @@
       <button class="act-btn" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
       <button class="act-btn" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
     </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-outline" style="margin-top:0" onclick="toggleZoneRow()"><i class="fa-solid fa-arrows-rotate"></i> Switch zone</button>
+    </div>
     <div id="summaryArea" style="margin-top:14px"></div>
   </div>
 
@@ -255,6 +258,53 @@
 const { jsPDF } = window.jspdf;
 const API = '/api/messages';
 const STORAGE_KEY = 'plantscore_audits';
+const IDB_NAME = 'PlantScoreDB';
+const IDB_STORE = 'images';
+
+// IndexedDB helpers for storing images separately (avoids localStorage size limits)
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('IDB set failed:', e); }
+}
+
+async function idbGet(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch(e) { return null; }
+}
+
+async function idbDelete(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = resolve;
+    });
+  } catch(e) {}
+}
 
 // ── Scoring system prompt — calibrated for accuracy ──────────────────────────
 const SYSP = `You are a professional plant display auditor conducting a PlantScore audit.
@@ -464,6 +514,7 @@ async function runAssessment() {
   }
   btn.disabled = false;
   updateStats();
+  autoSave();
 }
 
 function buildResultCard(e) {
@@ -735,31 +786,17 @@ function getSavedAudits() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
 }
 
-function saveAudit() {
+async function autoSave() {
+  // Silent auto-save after every assessment
+  if (!S.assessments.length) return;
+  try { await saveAuditData('autosave'); } catch(e) { console.warn('Auto-save failed:', e); }
+}
+
+async function saveAudit() {
   if (!S.assessments.length) { toast('Nothing to save yet'); return; }
   try {
-    const audits = getSavedAudits();
     const id = 'audit_' + Date.now();
-    const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
-
-    // Strip dataUrl (base64 images) before saving — too large for localStorage on mobile.
-    // Scores, notes, summaries and all audit data are preserved. Images won't re-display
-    // on load but the audit can be fully resumed and a PDF generated from saved data.
-    const lightState = JSON.parse(JSON.stringify(S));
-    lightState.assessments = lightState.assessments.map(e => ({ ...e, dataUrl: null }));
-    Object.keys(lightState.byZone).forEach(z => {
-      lightState.byZone[z] = lightState.byZone[z].map(e => ({ ...e, dataUrl: null }));
-    });
-
-    audits.unshift({
-      id, site: S.site, auditor: S.auditor,
-      date: new Date().toISOString(), avg,
-      zones: Object.keys(S.byZone).length,
-      plants: S.assessments.length,
-      state: lightState
-    });
-    if (audits.length > 20) audits.length = 20;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
+    await saveAuditData(id);
     toast('Audit saved');
     renderSetupSaved();
   } catch(e) {
@@ -768,11 +805,60 @@ function saveAudit() {
   }
 }
 
-function loadAudit(id) {
+async function saveAuditData(id) {
+  const audits = getSavedAudits();
+  const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
+
+  // Save images to IndexedDB separately (handles large binary data)
+  for (const entry of S.assessments) {
+    if (entry.dataUrl) {
+      await idbSet('img_' + id + '_' + entry.imageNum, entry.dataUrl);
+    }
+  }
+
+  // Strip dataUrl from localStorage state (keep it lean)
+  const lightState = JSON.parse(JSON.stringify(S));
+  lightState.assessments = lightState.assessments.map(e => ({ ...e, dataUrl: null }));
+  Object.keys(lightState.byZone).forEach(z => {
+    lightState.byZone[z] = lightState.byZone[z].map(e => ({ ...e, dataUrl: null }));
+  });
+
+  // Remove old autosave entry if this is a manual save
+  const filtered = id === 'autosave'
+    ? audits.filter(a => a.id !== 'autosave')
+    : audits.filter(a => a.id !== 'autosave' && a.id !== id);
+
+  filtered.unshift({
+    id, site: S.site, auditor: S.auditor,
+    date: new Date().toISOString(), avg,
+    zones: Object.keys(S.byZone).length,
+    plants: S.assessments.length,
+    isAutosave: id === 'autosave',
+    state: lightState
+  });
+  if (filtered.length > 20) filtered.length = 20;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+}
+
+async function loadAudit(id) {
   const audits = getSavedAudits();
   const saved = audits.find(a => a.id === id);
   if (!saved) { toast('Audit not found'); return; }
   S = JSON.parse(JSON.stringify(saved.state));
+
+  // Restore images from IndexedDB
+  for (const entry of S.assessments) {
+    const img = await idbGet('img_' + id + '_' + entry.imageNum);
+    if (img) {
+      entry.dataUrl = img;
+      // Also restore in byZone
+      if (S.byZone[entry.zone]) {
+        const ze = S.byZone[entry.zone].find(e => e.imageNum === entry.imageNum);
+        if (ze) ze.dataUrl = img;
+      }
+    }
+  }
+
   refreshHeaders();
   document.getElementById('resultsArea').innerHTML = '';
   document.getElementById('summaryArea').innerHTML = '';
@@ -783,14 +869,6 @@ function loadAudit(id) {
   document.getElementById('s-main').classList.add('active');
   document.getElementById('mainNav').classList.add('visible');
   switchTab('zones');
-  // Show a note that images aren't re-displayed on load but audit data is intact
-  const zEl = document.getElementById('zonesList');
-  if (zEl) {
-    const note = document.createElement('div');
-    note.style.cssText = 'font-size:12px;color:var(--text-light);background:var(--bg-off);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px';
-    note.innerHTML = '<i class="fa-solid fa-circle-info" style="margin-right:6px"></i>Audit resumed. All scores, notes and summaries are intact. Images are not re-displayed after loading but will appear normally if you upload new ones.';
-    zEl.prepend(note);
-  }
   toast('Audit resumed: ' + saved.site);
 }
 
@@ -809,9 +887,10 @@ function renderSetupSaved() {
   if (!audits.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light);text-align:center;padding:12px 0">No saved audits</div>'; return; }
   el.innerHTML = audits.map(a => {
     const date = new Date(a.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    const autosaveBadge = a.isAutosave ? '<span style="font-size:10px;background:#E1F5EE;color:#085041;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:600">AUTO</span>' : '';
     return `<div class="saved-item">
       <div class="saved-info">
-        <div class="saved-name">${a.site}</div>
+        <div class="saved-name">${a.site}${autosaveBadge}</div>
         <div class="saved-meta">${a.auditor} · ${date} · ${a.plants} plant${a.plants>1?'s':''} · ${a.zones} zone${a.zones>1?'s':''} · avg ${a.avg}/5</div>
       </div>
       <div class="saved-actions">
@@ -952,7 +1031,7 @@ async function exportPDF() {
 
   const fname='PlantScore_'+S.site.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
   doc.save(fname);
-  status.textContent='✓ Downloaded: '+fname;
+  status.innerHTML = '✓ Downloaded: '+fname+' &nbsp;<button onclick="switchTab('audit')" style="font-size:12px;padding:4px 10px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;margin-left:4px">Back to audit</button>';
   toast('PDF saved');
 }
 
