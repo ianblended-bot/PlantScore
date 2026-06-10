@@ -87,7 +87,7 @@
 
     /* ── Cards ── */
     .card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; background: var(--bg); }
-    .card-img { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 12px; }
+    .card-img { width: 100%; height: auto; max-height: 320px; object-fit: contain; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-secondary); }
     .plant-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
     .img-num { font-size: 11px; color: var(--text-light); margin-bottom: 3px; }
     .scores { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -388,19 +388,43 @@ function handleFiles(files) {
   for (const f of files) {
     const reader = new FileReader();
     reader.onload = e => {
-      const b64 = e.target.result.split(',')[1];
-      S.pending.push({ b64, dataUrl: e.target.result });
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      img.className = 'thumb';
-      img.alt = 'Plant photo';
-      const row = document.getElementById('thumbRow');
-      row.appendChild(img);
-      row.classList.remove('hidden');
-      document.getElementById('assessBtn').disabled = false;
+      const original = e.target.result;
+      // Resize image for API (max 1600px on longest side) while keeping quality high
+      resizeImage(original, 1600, 0.88).then(({ b64, dataUrl }) => {
+        S.pending.push({ b64, dataUrl });
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.className = 'thumb';
+        img.alt = 'Plant photo';
+        const row = document.getElementById('thumbRow');
+        row.appendChild(img);
+        row.classList.remove('hidden');
+        document.getElementById('assessBtn').disabled = false;
+      });
     };
     reader.readAsDataURL(f);
   }
+}
+
+function resizeImage(dataUrl, maxPx, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      // Correct for EXIF orientation via canvas (renders correctly)
+      const scale = Math.min(1, maxPx / Math.max(w, h));
+      const cw = Math.round(w * scale);
+      const ch = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, cw, ch);
+      const resized = canvas.toDataURL('image/jpeg', quality);
+      resolve({ b64: resized.split(',')[1], dataUrl: resized });
+    };
+    img.src = dataUrl;
+  });
 }
 
 // ── Assess ───────────────────────────────────────────────────────────────────
