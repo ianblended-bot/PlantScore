@@ -180,9 +180,15 @@
       <button class="act-btn" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
       <button class="act-btn" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
     </div>
-    <button class="btn btn-outline" style="margin-top:10px" onclick="toggleZoneRow()">
-      <i class="fa-solid fa-arrows-rotate"></i> Switch zone
-    </button>
+    <div style="margin-top:12px">
+      <div id="bottomZoneRow" class="zone-row hidden">
+        <input id="bottomNewZone" placeholder="New zone name…" />
+        <button onclick="changeZoneBottom()">Switch</button>
+      </div>
+      <button class="btn btn-outline" style="margin-top:0" onclick="toggleBottomZoneRow()">
+        <i class="fa-solid fa-arrows-rotate"></i> Switch zone
+      </button>
+    </div>
     <div id="summaryArea" style="margin-top:14px"></div>
   </div>
 
@@ -319,15 +325,19 @@ MIXED PLANTERS:
 OUTPUT FORMAT — output ONLY the block below, with NO text before or after it:
 ---IMAGE_START---
 PLANT_ID: [species name or brief display description]
-HEALTH: [number 1-5, no text]
-MAINTENANCE: [number 1-5, no text]
-FORM: [number 1-5, no text]
-OVERALL: [average of the three scores to 1 decimal place, no text]
+HEALTH: [your independent score for plant health, 1-5]
+MAINTENANCE: [your independent score for cleanliness and upkeep, 1-5]
+FORM: [your independent score for shape and fullness, 1-5]
+OVERALL: [calculate: add HEALTH + MAINTENANCE + FORM, divide by 3, round to 1 decimal place]
 ISSUES: [bullet list of visible issues, or the single word NONE]
-RECS: [bullet list of recommendations ONLY if overall ≤3, otherwise the single word NONE]
+RECS: [bullet list of recommendations ONLY if OVERALL ≤3, otherwise the single word NONE]
 ---IMAGE_END---
 
-CRITICAL: Output NOTHING except the block above. No preamble, no explanation, no commentary.`;
+CRITICAL RULES:
+- HEALTH, MAINTENANCE and FORM must each be scored independently — they will almost always differ
+- Do NOT give the same number for all three criteria
+- OVERALL must be the mathematical average of the three, not a separate judgement
+- Output NOTHING except the block above. No preamble, no explanation, no commentary.`;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let S = {
@@ -371,10 +381,26 @@ function toggleZoneRow() { document.getElementById('zoneRow').classList.toggle('
 function changeZone() {
   const val = document.getElementById('newZone').value.trim();
   if (!val) return;
-  S.zone = val;
-  setText('hZone', val); setText('nZone', val);
+  applyZoneChange(val);
   document.getElementById('zoneRow').classList.add('hidden');
   document.getElementById('newZone').value = '';
+}
+function toggleBottomZoneRow() {
+  document.getElementById('bottomZoneRow').classList.toggle('hidden');
+  if (!document.getElementById('bottomZoneRow').classList.contains('hidden')) {
+    document.getElementById('bottomNewZone').focus();
+  }
+}
+function changeZoneBottom() {
+  const val = document.getElementById('bottomNewZone').value.trim();
+  if (!val) return;
+  applyZoneChange(val);
+  document.getElementById('bottomZoneRow').classList.add('hidden');
+  document.getElementById('bottomNewZone').value = '';
+}
+function applyZoneChange(val) {
+  S.zone = val;
+  setText('hZone', val); setText('nZone', val);
   S.pending = [];
   document.getElementById('thumbRow').innerHTML = '';
   document.getElementById('thumbRow').classList.add('hidden');
