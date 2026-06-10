@@ -11,33 +11,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
-      --green: #0F6E56;
-      --green-dark: #085041;
-      --green-bg: #E1F5EE;
-      --amber: #BA7517;
-      --amber-bg: #FAEEDA;
-      --red: #A32D2D;
-      --red-bg: #FCEBEB;
-      --text: #1a1a1a;
-      --text-mid: #555;
-      --text-light: #888;
-      --border: #ddd;
-      --border-light: #eee;
-      --bg: #fff;
-      --bg-off: #f8f8f6;
-      --bg-secondary: #f2f2f0;
-      --radius: 10px;
-      --radius-sm: 6px;
+      --green: #0F6E56; --green-dark: #085041; --green-bg: #E1F5EE;
+      --amber: #BA7517; --amber-bg: #FAEEDA;
+      --red: #A32D2D; --red-bg: #FCEBEB;
+      --text: #1a1a1a; --text-mid: #555; --text-light: #888;
+      --border: #ddd; --border-light: #eee;
+      --bg: #fff; --bg-off: #f8f8f6; --bg-secondary: #f2f2f0;
+      --radius: 10px; --radius-sm: 6px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-off); color: var(--text); }
     body { max-width: 480px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* ── Screens ── */
     .screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 20px 16px 90px; }
     .screen.active { display: flex; }
-
-    /* ── Setup ── */
     .logo { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
     .logo span { color: var(--green); }
     .tagline { font-size: 13px; color: var(--text-light); margin-bottom: 28px; }
@@ -45,49 +31,32 @@
     .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
     .field input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); outline: none; transition: border-color .15s; }
     .field input:focus { border-color: var(--green); }
-
-    /* ── Buttons ── */
     .btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
-    .btn:active { opacity: .85; }
-    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn:active { opacity: .85; } .btn:disabled { opacity: .4; cursor: not-allowed; }
     .btn-primary { background: var(--green); color: #fff; }
     .btn-outline { background: var(--bg); color: var(--text); border: 1px solid var(--border); font-weight: 500; margin-top: 8px; }
+    .btn-danger { background: var(--bg); color: var(--red); border: 1px solid #f0c0c0; font-weight: 500; margin-top: 8px; }
     .btn-sm { padding: 8px 14px; font-size: 13px; font-weight: 500; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-
-    /* ── Nav ── */
     .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg); border-top: 1px solid var(--border-light); display: none; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
     .nav.visible { display: flex; }
-    .nav-btn { flex: 1; padding: 10px 4px 8px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-light); font-size: 10px; font-weight: 500; border-top: 2px solid transparent; }
-    .nav-btn i { font-size: 20px; }
-    .nav-btn.active { color: var(--green); border-top-color: var(--green); }
-
-    /* ── Header bar ── */
+    .nav-btn { flex: 1; padding: 10px 2px 8px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-light); font-size: 9px; font-weight: 500; border-top: 2px solid transparent; }
+    .nav-btn i { font-size: 18px; } .nav-btn.active { color: var(--green); border-top-color: var(--green); }
     .hbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border-light); }
     .hbar-left .site { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
     .hbar-left .auditor { font-size: 15px; font-weight: 600; }
     .zone-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; background: var(--green-bg); color: var(--green-dark); padding: 3px 9px; border-radius: 20px; margin-top: 4px; }
-
-    /* ── Upload ── */
     .up-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .up-btn { padding: 14px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 500; }
-    .up-btn i { font-size: 22px; color: var(--green); }
-    .up-btn:active { background: var(--bg-secondary); }
+    .up-btn i { font-size: 22px; color: var(--green); } .up-btn:active { background: var(--bg-secondary); }
     input[type=file] { display: none; }
-
-    /* ── Thumb row ── */
     .thumb-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
     .thumb { width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-light); }
-    .thumb-count { font-size: 12px; color: var(--text-light); align-self: center; }
-
-    /* ── Zone switch ── */
     .zone-row { display: flex; gap: 8px; margin-bottom: 14px; }
     .zone-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); outline: none; }
     .zone-row input:focus { border-color: var(--green); }
     .zone-row button { padding: 10px 16px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
-
-    /* ── Cards ── */
     .card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; background: var(--bg); }
-    .card-img { width: 100%; height: auto; max-height: 320px; object-fit: contain; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-secondary); }
+    .card-img { width: 100%; height: auto; max-height: 340px; object-fit: contain; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--bg-secondary); }
     .plant-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
     .img-num { font-size: 11px; color: var(--text-light); margin-bottom: 3px; }
     .scores { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -101,36 +70,25 @@
     .rec-box { margin-top: 10px; padding: 10px 12px; background: var(--bg-off); border-left: 3px solid var(--green); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .rec-label { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
     .rec-body { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
-
-    /* ── Loading ── */
     .loading { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 24px; text-align: center; background: var(--bg-secondary); margin-bottom: 12px; }
     .spinner { width: 26px; height: 26px; border: 2.5px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading p { font-size: 13px; color: var(--text-light); }
-
-    /* ── Summary cards ── */
     .sum-card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; background: var(--bg-off); margin-bottom: 10px; }
     .sum-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .sum-body { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
     .avg-num { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
     .avg-label { font-size: 12px; color: var(--text-light); margin-top: 3px; }
-
-    /* ── Action buttons row ── */
     .act-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
     .act-btn { padding: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .act-btn:active { background: var(--bg-secondary); }
-
-    /* ── Notes ── */
     textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; outline: none; font-family: inherit; }
     textarea:focus { border-color: var(--green); }
     .note-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
     .note-text { flex: 1; font-size: 13px; color: var(--text); line-height: 1.55; }
     .note-del { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 16px; padding: 2px; flex-shrink: 0; }
-    .note-del:hover { color: var(--red); }
     .zone-group { margin-bottom: 18px; }
     .zone-group-title { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border-light); }
-
-    /* ── History ── */
     .hist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
     .hist-thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-light); flex-shrink: 0; }
     .hist-thumb-placeholder { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -138,55 +96,60 @@
     .hist-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .hist-meta { font-size: 12px; color: var(--text-light); margin: 2px 0; }
     .hist-pills { display: flex; gap: 4px; flex-wrap: wrap; }
-
-    /* ── Report tab ── */
     .stat-card { background: var(--bg-off); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
     .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .stat-label { font-size: 13px; color: var(--text-mid); }
     .stat-val { font-size: 13px; font-weight: 600; }
-
-    /* ── Empty state ── */
+    /* Zones panel */
+    .zone-panel { border: 1px solid var(--border-light); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+    .zone-panel-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-off); cursor: pointer; }
+    .zone-panel-hdr h3 { font-size: 13px; font-weight: 600; }
+    .zone-panel-hdr .za { font-size: 12px; color: var(--text-light); }
+    .zone-panel-body { display: none; padding: 10px 14px; }
+    .zone-panel-body.open { display: block; }
+    /* Saved audits */
+    .saved-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+    .saved-info { flex: 1; }
+    .saved-name { font-size: 14px; font-weight: 600; }
+    .saved-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .saved-actions { display: flex; gap: 8px; }
+    .icon-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; font-size: 13px; color: var(--text-mid); }
+    .icon-btn.del { color: var(--red); border-color: #f0c0c0; }
     .empty { text-align: center; padding: 40px 16px; color: var(--text-light); }
     .empty i { font-size: 32px; display: block; margin-bottom: 10px; }
     .empty p { font-size: 14px; }
-
-    /* ── Toast ── */
     .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; }
-
-    /* ── Misc ── */
     .hidden { display: none !important; }
     .section-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; margin-top: 4px; }
     .divider { border: none; border-top: 1px solid var(--border-light); margin: 16px 0; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
+    .modal { background: var(--bg); border-radius: var(--radius) var(--radius) 0 0; padding: 24px 20px; width: 100%; max-width: 480px; }
+    .modal h3 { font-size: 16px; margin-bottom: 8px; }
+    .modal p { font-size: 13px; color: var(--text-mid); margin-bottom: 18px; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns button { flex: 1; }
   </style>
 </head>
 <body>
 
-<!-- ══════════════ SETUP SCREEN ══════════════ -->
+<!-- SETUP -->
 <div id="s-setup" class="screen active">
-  <div style="margin-top: 20px;">
+  <div style="margin-top:20px">
     <div class="logo">Plant<span>Score</span></div>
     <div class="tagline">Plant display audit tool</div>
-    <div class="field">
-      <label>Site name</label>
-      <input id="siteName" type="text" placeholder="e.g. Canary Wharf Office" autocomplete="off" />
-    </div>
-    <div class="field">
-      <label>Initial zone / area</label>
-      <input id="zoneName" type="text" placeholder="e.g. Reception" autocomplete="off" />
-    </div>
-    <div class="field">
-      <label>Auditor name</label>
-      <input id="auditorName" type="text" placeholder="Your name" autocomplete="off" />
-    </div>
-    <button class="btn btn-primary" onclick="startAudit()" style="margin-top: 8px;">
-      <i class="fa-solid fa-leaf"></i> Start audit
-    </button>
+    <div class="field"><label>Site name</label><input id="siteName" type="text" placeholder="e.g. Canary Wharf Office" autocomplete="off" /></div>
+    <div class="field"><label>Initial zone / area</label><input id="zoneName" type="text" placeholder="e.g. Reception" autocomplete="off" /></div>
+    <div class="field"><label>Auditor name</label><input id="auditorName" type="text" placeholder="Your name" autocomplete="off" /></div>
+    <button class="btn btn-primary" onclick="startAudit()" style="margin-top:8px"><i class="fa-solid fa-leaf"></i> Start audit</button>
+    <hr class="divider" />
+    <div class="section-label">Saved audits</div>
+    <div id="setupSavedList"></div>
   </div>
 </div>
 
-<!-- ══════════════ MAIN APP ══════════════ -->
-<div id="s-main" class="screen" style="padding-top: 16px;">
+<!-- MAIN -->
+<div id="s-main" class="screen" style="padding-top:16px">
 
   <!-- AUDIT TAB -->
   <div id="tab-audit">
@@ -198,36 +161,35 @@
       </div>
       <button class="btn-sm" onclick="toggleZoneRow()"><i class="fa-solid fa-arrows-rotate"></i> Zone</button>
     </div>
-
     <div id="zoneRow" class="zone-row hidden">
       <input id="newZone" placeholder="New zone name…" />
       <button onclick="changeZone()">Switch</button>
     </div>
-
     <div class="up-grid">
-      <button class="up-btn" onclick="document.getElementById('camIn').click()">
-        <i class="fa-solid fa-camera"></i> Take photo
-      </button>
-      <button class="up-btn" onclick="document.getElementById('fileIn').click()">
-        <i class="fa-solid fa-upload"></i> Upload
-      </button>
+      <button class="up-btn" onclick="document.getElementById('camIn').click()"><i class="fa-solid fa-camera"></i> Take photo</button>
+      <button class="up-btn" onclick="document.getElementById('fileIn').click()"><i class="fa-solid fa-upload"></i> Upload</button>
     </div>
     <input type="file" id="camIn" accept="image/*" capture="environment" multiple onchange="handleFiles(this.files)" />
     <input type="file" id="fileIn" accept="image/*" multiple onchange="handleFiles(this.files)" />
-
     <div id="thumbRow" class="thumb-row hidden"></div>
-
-    <button id="assessBtn" class="btn btn-primary" onclick="runAssessment()" disabled>
-      <i class="fa-solid fa-wand-magic-sparkles"></i> Assess images
-    </button>
-
-    <div id="resultsArea" style="margin-top: 14px;"></div>
-
+    <button id="assessBtn" class="btn btn-primary" onclick="runAssessment()" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Assess images</button>
+    <div id="resultsArea" style="margin-top:14px"></div>
     <div class="act-row">
       <button class="act-btn" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
       <button class="act-btn" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
     </div>
-    <div id="summaryArea" style="margin-top: 14px;"></div>
+    <div id="summaryArea" style="margin-top:14px"></div>
+  </div>
+
+  <!-- ZONES TAB -->
+  <div id="tab-zones" class="hidden">
+    <div class="hbar">
+      <div class="hbar-left">
+        <div class="site" id="zSite"></div>
+        <div class="auditor">Zones</div>
+      </div>
+    </div>
+    <div id="zonesList"></div>
   </div>
 
   <!-- NOTES TAB -->
@@ -241,22 +203,9 @@
     </div>
     <div class="section-label">Add note for current zone</div>
     <textarea id="noteText" placeholder="Type a note…"></textarea>
-    <button class="btn btn-primary" onclick="addNote()" style="margin-top: 8px;">
-      <i class="fa-solid fa-plus"></i> Add note
-    </button>
+    <button class="btn btn-primary" onclick="addNote()" style="margin-top:8px"><i class="fa-solid fa-plus"></i> Add note</button>
     <hr class="divider" />
     <div id="notesList"></div>
-  </div>
-
-  <!-- HISTORY TAB -->
-  <div id="tab-history" class="hidden">
-    <div class="hbar">
-      <div class="hbar-left">
-        <div class="site" id="hiSite"></div>
-        <div class="auditor">Assessment history</div>
-      </div>
-    </div>
-    <div id="historyList"></div>
   </div>
 
   <!-- REPORT TAB -->
@@ -264,46 +213,66 @@
     <div class="hbar">
       <div class="hbar-left">
         <div class="site" id="rSite"></div>
-        <div class="auditor">Export report</div>
+        <div class="auditor">Report</div>
       </div>
     </div>
     <div class="stat-card" id="reportStats"></div>
-    <button class="btn btn-primary" onclick="exportPDF()">
-      <i class="fa-solid fa-file-arrow-down"></i> Download PDF report
-    </button>
-    <div id="pdfStatus" style="margin-top: 10px; font-size: 12px; color: var(--text-light); text-align: center;"></div>
+    <button class="btn btn-primary" onclick="exportPDF()"><i class="fa-solid fa-file-arrow-down"></i> Download PDF report</button>
+    <div id="pdfStatus" style="margin-top:10px;font-size:12px;color:var(--text-light);text-align:center"></div>
     <hr class="divider" />
-    <div class="section-label">Generate summaries first</div>
     <button class="btn btn-outline" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
     <button class="btn btn-outline" onclick="doSiteEnd()"><i class="fa-solid fa-chart-bar"></i> Site summary</button>
-    <div id="reportSummaryArea" style="margin-top: 14px;"></div>
+    <hr class="divider" />
+    <button class="btn btn-outline" onclick="saveAudit()"><i class="fa-solid fa-floppy-disk"></i> Save audit</button>
+    <button class="btn btn-danger" onclick="confirmNewAudit()"><i class="fa-solid fa-plus"></i> New audit</button>
   </div>
 
 </div>
 
-<!-- ══ Bottom Nav ══ -->
+<!-- NAV -->
 <nav class="nav" id="mainNav">
-  <button class="nav-btn active" id="nb-audit" onclick="switchTab('audit')">
-    <i class="fa-solid fa-camera"></i> Audit
-  </button>
-  <button class="nav-btn" id="nb-notes" onclick="switchTab('notes')">
-    <i class="fa-solid fa-note-sticky"></i> Notes
-  </button>
-  <button class="nav-btn" id="nb-history" onclick="switchTab('history')">
-    <i class="fa-solid fa-clock-rotate-left"></i> History
-  </button>
-  <button class="nav-btn" id="nb-report" onclick="switchTab('report')">
-    <i class="fa-solid fa-file-chart-column"></i> Report
-  </button>
+  <button class="nav-btn active" id="nb-audit" onclick="switchTab('audit')"><i class="fa-solid fa-camera"></i>Audit</button>
+  <button class="nav-btn" id="nb-zones" onclick="switchTab('zones')"><i class="fa-solid fa-layer-group"></i>Zones</button>
+  <button class="nav-btn" id="nb-notes" onclick="switchTab('notes')"><i class="fa-solid fa-note-sticky"></i>Notes</button>
+  <button class="nav-btn" id="nb-report" onclick="switchTab('report')"><i class="fa-solid fa-file-chart-column"></i>Report</button>
 </nav>
+
+<!-- CONFIRM MODAL -->
+<div id="modal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalBody"></p>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const { jsPDF } = window.jspdf;
 const API = '/api/messages';
+const STORAGE_KEY = 'plantscore_audits';
 
-const SYSP = `You are conducting a PlantScore audit. Assess each uploaded image separately.
+// ── Scoring system prompt — calibrated for accuracy ──────────────────────────
+const SYSP = `You are a professional plant display auditor conducting a PlantScore audit.
+
+SCORING SCALE (use the full range):
+1 = Very poor. Severely unhealthy, neglected, or near dead.
+2 = Poor. Significant visible problems requiring urgent attention.
+3 = Average / acceptable. Some issues present but plant is functional.
+4 = Good commercial quality. Healthy, well-maintained, presentable. This is the target standard.
+5 = Exceptional / near perfect. Reserve only for outstanding specimens.
+
+IMPORTANT CALIBRATION:
+- Most well-maintained indoor plants in a professional setting should score 3.5–4.5
+- Do NOT default to low scores. A plant that looks healthy and well-presented scores 4.
+- Only score 1–2 if there is clear, visible evidence of serious problems.
+- Score what you can SEE. Do not penalise for conditions not visible in the image.
+- Lighting, image quality, and angle should not lower the score unless the plant itself shows problems.
+
 For EACH image output EXACTLY:
 ---IMAGE_START---
 PLANT_ID: [species name]
@@ -311,67 +280,57 @@ HEALTH: [1-5]
 MAINTENANCE: [1-5]
 FORM: [1-5]
 OVERALL: [average to 1dp]
-ISSUES: [bullet list or NONE]
-RECS: [bullet list if overall ≤3 else NONE]
----IMAGE_END---
-Rules: 4=strong commercial quality, 5=near perfect (rare). Only give recommendations if ≤3. Do not assume conditions not visible.`;
+ISSUES: [bullet list of visible issues, or NONE]
+RECS: [bullet list of recommendations ONLY if overall ≤3, else NONE]
+---IMAGE_END---`;
 
 let S = {
   site: '', zone: '', auditor: '',
-  pending: [],
-  assessments: [],
-  byZone: {},
-  notes: {},
-  zoneSums: {},
-  siteSumText: '',
-  counter: 0
+  pending: [], assessments: [], byZone: {},
+  notes: {}, zoneSums: {}, siteSumText: '', counter: 0
 };
 
-// ── Setup ────────────────────────────────────────────────────────────────────
+// ── Setup ─────────────────────────────────────────────────────────────────────
 function startAudit() {
   const s = v('siteName'), z = v('zoneName'), a = v('auditorName');
   if (!s || !z || !a) { toast('Please fill in all fields'); return; }
-  S.site = s; S.zone = z; S.auditor = a;
+  S = { site:s, zone:z, auditor:a, pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
   refreshHeaders();
   document.getElementById('s-setup').classList.remove('active');
   document.getElementById('s-main').classList.add('active');
   document.getElementById('mainNav').classList.add('visible');
+  switchTab('audit');
 }
 
 function v(id) { return document.getElementById(id).value.trim(); }
 
 function refreshHeaders() {
-  setText('hSite', S.site); setText('nSite', S.site);
-  setText('hiSite', S.site); setText('rSite', S.site);
-  setText('hAuditor', S.auditor);
+  ['hSite','nSite','rSite','zSite'].forEach(id => setText(id, S.site + ' — ' + S.auditor));
   setText('hZone', S.zone); setText('nZone', S.zone);
   updateStats();
 }
 
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 
-// ── Tabs ─────────────────────────────────────────────────────────────────────
+// ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
-  ['audit','notes','history','report'].forEach(t => {
+  ['audit','zones','notes','report'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab);
     document.getElementById('nb-'+t).classList.toggle('active', t === tab);
   });
+  if (tab === 'zones') renderZones();
   if (tab === 'notes') renderNotes();
-  if (tab === 'history') renderHistory();
   if (tab === 'report') updateStats();
 }
 
-// ── Zone ─────────────────────────────────────────────────────────────────────
-function toggleZoneRow() {
-  document.getElementById('zoneRow').classList.toggle('hidden');
-}
+// ── Zone ──────────────────────────────────────────────────────────────────────
+function toggleZoneRow() { document.getElementById('zoneRow').classList.toggle('hidden'); }
 
 function changeZone() {
   const val = document.getElementById('newZone').value.trim();
   if (!val) return;
   S.zone = val;
-  document.getElementById('hZone').textContent = val;
-  document.getElementById('nZone').textContent = val;
+  setText('hZone', val); setText('nZone', val);
   document.getElementById('zoneRow').classList.add('hidden');
   document.getElementById('newZone').value = '';
   S.pending = [];
@@ -380,25 +339,20 @@ function changeZone() {
   document.getElementById('assessBtn').disabled = true;
   document.getElementById('resultsArea').innerHTML = '';
   document.getElementById('summaryArea').innerHTML = '';
-  toast('Zone switched to ' + val);
+  toast('Zone: ' + val);
 }
 
-// ── Files ────────────────────────────────────────────────────────────────────
+// ── Files ─────────────────────────────────────────────────────────────────────
 function handleFiles(files) {
   for (const f of files) {
     const reader = new FileReader();
     reader.onload = e => {
-      const original = e.target.result;
-      // Resize image for API (max 1600px on longest side) while keeping quality high
-      resizeImage(original, 1600, 0.88).then(({ b64, dataUrl }) => {
+      resizeImage(e.target.result, 1600, 0.88).then(({ b64, dataUrl }) => {
         S.pending.push({ b64, dataUrl });
         const img = document.createElement('img');
-        img.src = dataUrl;
-        img.className = 'thumb';
-        img.alt = 'Plant photo';
+        img.src = dataUrl; img.className = 'thumb'; img.alt = 'Plant photo';
         const row = document.getElementById('thumbRow');
-        row.appendChild(img);
-        row.classList.remove('hidden');
+        row.appendChild(img); row.classList.remove('hidden');
         document.getElementById('assessBtn').disabled = false;
       });
     };
@@ -410,16 +364,11 @@ function resizeImage(dataUrl, maxPx, quality) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      let w = img.width, h = img.height;
-      // Correct for EXIF orientation via canvas (renders correctly)
-      const scale = Math.min(1, maxPx / Math.max(w, h));
-      const cw = Math.round(w * scale);
-      const ch = Math.round(h * scale);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const cw = Math.round(img.width * scale), ch = Math.round(img.height * scale);
       const canvas = document.createElement('canvas');
-      canvas.width = cw;
-      canvas.height = ch;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, cw, ch);
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
       const resized = canvas.toDataURL('image/jpeg', quality);
       resolve({ b64: resized.split(',')[1], dataUrl: resized });
     };
@@ -427,7 +376,7 @@ function resizeImage(dataUrl, maxPx, quality) {
   });
 }
 
-// ── Assess ───────────────────────────────────────────────────────────────────
+// ── Assess ────────────────────────────────────────────────────────────────────
 function scCls(s) { return s >= 4 ? 's-high' : s >= 3.5 ? 's-mid' : 's-low'; }
 function ovCol(s) { return s >= 4 ? 'var(--green-dark)' : s >= 3.5 ? '#633806' : 'var(--red)'; }
 
@@ -459,27 +408,24 @@ async function runAssessment() {
   document.getElementById('thumbRow').innerHTML = '';
   document.getElementById('thumbRow').classList.add('hidden');
 
-  // Process one image at a time to avoid payload size limits
   for (let i = 0; i < toProcess.length; i++) {
     const imgData = toProcess[i];
-    const ld = mkLoader(`Assessing image ${i + 1} of ${total}…`);
+    const ld = mkLoader('Assessing image ' + (i+1) + ' of ' + total + '…');
     area.appendChild(ld);
-
     try {
-      const content = [
-        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imgData.b64 } },
-        { type: 'text', text: 'Image 1' }
-      ];
       const resp = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP, messages: [{ role: 'user', content }] })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, system: SYSP,
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imgData.b64 } },
+            { type: 'text', text: 'Please assess this plant display.' }
+          ]}]
+        })
       });
       const data = await resp.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const results = parseBlocks(data.content.map(c => c.text || '').join(''));
       area.removeChild(ld);
-
       const r = results[0];
       if (r) {
         S.counter++;
@@ -491,10 +437,9 @@ async function runAssessment() {
       }
     } catch (e) {
       area.removeChild(ld);
-      area.insertAdjacentHTML('beforeend', `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>Image ${i + 1} failed: ${e.message}</p></div>`);
+      area.insertAdjacentHTML('beforeend', `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>Image ${i+1} failed: ${e.message}</p></div>`);
     }
   }
-
   btn.disabled = false;
   updateStats();
 }
@@ -512,8 +457,8 @@ function buildResultCard(e) {
       <span class="score-pill ${scCls(e.form)}">Form ${e.form}/5</span>
     </div>
     <div class="overall" style="color:${ovCol(e.overall)}">Overall: ${e.overall}/5</div>
-    ${e.issues.length ? `<div class="issues-label">Issues observed</div><div class="issues-body">${e.issues.map(x => '• ' + x).join('<br>')}</div>` : ''}
-    ${e.recs.length ? `<div class="rec-box"><div class="rec-label">Recommendations</div><div class="rec-body">${e.recs.map(x => '• ' + x).join('<br>')}</div></div>` : ''}
+    ${e.issues.length ? `<div class="issues-label">Issues observed</div><div class="issues-body">${e.issues.map(x=>'• '+x).join('<br>')}</div>` : ''}
+    ${e.recs.length ? `<div class="rec-box"><div class="rec-label">Recommendations</div><div class="rec-body">${e.recs.map(x=>'• '+x).join('<br>')}</div></div>` : ''}
   `;
   return d;
 }
@@ -525,74 +470,59 @@ function mkLoader(msg) {
   return d;
 }
 
-// ── Zone summary ─────────────────────────────────────────────────────────────
+// ── Zone summary ──────────────────────────────────────────────────────────────
 async function doZoneEnd() {
   const zone = S.zone;
   const entries = S.byZone[zone] || [];
   if (!entries.length) { toast('No assessments in this zone yet'); return; }
-
-  const targetArea = document.getElementById('summaryArea') || document.getElementById('reportSummaryArea');
   const sumArea = document.getElementById('summaryArea');
-  const repArea = document.getElementById('reportSummaryArea');
-
   const ld = mkLoader('Generating zone summary…');
   sumArea.appendChild(ld);
-  if (repArea) repArea.appendChild(ld.cloneNode(true));
-
-  const avg = (entries.reduce((s, e) => s + e.overall, 0) / entries.length).toFixed(1);
-  const sd = entries.map(e => `Image ${e.imageNum}: ${e.plantId} — ${e.overall}/5. Issues: ${e.issues.join('; ') || 'none'}`).join('\n');
-  const notes = (S.notes[zone] || []).join('; ') || 'none';
-
+  const avg = (entries.reduce((s,e) => s+e.overall, 0) / entries.length).toFixed(1);
+  const sd = entries.map(e => `Image ${e.imageNum}: ${e.plantId} — ${e.overall}/5. Issues: ${e.issues.join('; ')||'none'}`).join('\n');
+  const notes = (S.notes[zone]||[]).join('; ') || 'none';
   try {
-    const resp = await fetch(API, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 600, messages: [{ role: 'user', content: `PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentence trends]\nPRIORITY: [bullets for ≤3 only, or NONE]\nNOTES: [notes or NONE]` }] })
+    const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:600,
+        messages:[{ role:'user', content:`PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentence trends]\nPRIORITY: [bullets for ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
+      })
     });
     const data = await resp.json();
-    const text = data.content.map(c => c.text || '').join('');
-    const gf = k => { const m = text.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
-    const obs = gf('OBS'), pri = gf('PRIORITY'), nt = gf('NOTES');
-    S.zoneSums[zone] = { avg, obs, priority: pri, notes: nt };
-
-    const html = `
+    const text = data.content.map(c=>c.text||'').join('');
+    const gf = k => { const m = text.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():''; };
+    const obs=gf('OBS'), pri=gf('PRIORITY'), nt=gf('NOTES');
+    S.zoneSums[zone] = { avg, obs, priority:pri, notes:nt };
+    sumArea.removeChild(ld);
+    sumArea.innerHTML = `
       <div class="sum-card"><div class="avg-num">${avg}<span style="font-size:18px;color:var(--text-light)">/5</span></div><div class="avg-label">${zone} — zone average</div></div>
       <div class="sum-card"><div class="sum-title">Brief observations</div><div class="sum-body">${obs}</div></div>
-      ${pri && pri !== 'NONE' ? `<div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${pri.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>` : ''}
-      ${nt && nt !== 'NONE' ? `<div class="sum-card"><div class="sum-title">Notes</div><div class="sum-body">${nt}</div></div>` : ''}
+      ${pri&&pri!=='NONE'?`<div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${pri.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>`:''}
+      ${nt&&nt!=='NONE'?`<div class="sum-card"><div class="sum-title">Notes</div><div class="sum-body">${nt}</div></div>`:''}
     `;
-
-    sumArea.removeChild(ld);
-    sumArea.innerHTML = html;
-  } catch (e) {
-    sumArea.removeChild(ld);
-    sumArea.innerHTML = `<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`;
-  }
+  } catch(e) { sumArea.removeChild(ld); sumArea.innerHTML=`<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`; }
 }
 
-// ── Site summary ─────────────────────────────────────────────────────────────
+// ── Site summary ──────────────────────────────────────────────────────────────
 async function doSiteEnd() {
   const all = S.assessments;
   if (!all.length) { toast('No assessments recorded yet'); return; }
-
   const sumArea = document.getElementById('summaryArea');
   const ld = mkLoader('Generating site summary…');
   sumArea.appendChild(ld);
-
-  const avg = (all.reduce((s, e) => s + e.overall, 0) / all.length).toFixed(1);
-  const sd = Object.entries(S.byZone).map(([z, es]) => {
-    const za = (es.reduce((s, e) => s + e.overall, 0) / es.length).toFixed(1);
-    return `Zone: ${z} (avg ${za}/5)\n` + es.map(e => `  - ${e.plantId}: ${e.overall}/5. Issues: ${e.issues.join('; ') || 'none'}`).join('\n');
+  const avg = (all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
+  const sd = Object.entries(S.byZone).map(([z,es])=>{
+    const za=(es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
+    return `Zone: ${z} (avg ${za}/5)\n`+es.map(e=>`  - ${e.plantId}: ${e.overall}/5`).join('\n');
   }).join('\n\n');
-
   try {
-    const resp = await fetch(API, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 700, messages: [{ role: 'user', content: `PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentence site-wide trends]\nPRIORITY: [most critical actions across all zones]` }] })
+    const resp = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:700,
+        messages:[{ role:'user', content:`PlantScore site summary. Site: ${S.site}. Avg: ${avg}/5.\n${sd}\nOutput EXACTLY:\nOBS: [2-3 sentence site-wide trends]\nPRIORITY: [most critical actions across all zones]` }]
+      })
     });
     const data = await resp.json();
-    S.siteSumText = data.content.map(c => c.text || '').join('');
-    const gf = k => { const m = S.siteSumText.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
-
+    S.siteSumText = data.content.map(c=>c.text||'').join('');
+    const gf = k => { const m=S.siteSumText.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():''; };
     sumArea.removeChild(ld);
     sumArea.innerHTML = `
       <div class="sum-card"><div class="avg-num">${avg}<span style="font-size:18px;color:var(--text-light)">/5</span></div><div class="avg-label">${S.site} — site average</div></div>
@@ -600,21 +530,61 @@ async function doSiteEnd() {
       <div class="sum-card"><div class="sum-title">Priority actions</div><div class="sum-body">${gf('PRIORITY').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div></div>
     `;
     updateStats();
-  } catch (e) {
-    sumArea.removeChild(ld);
-    sumArea.innerHTML = `<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`;
-  }
+  } catch(e) { sumArea.removeChild(ld); sumArea.innerHTML=`<div class="loading" style="color:var(--red)"><p>Error: ${e.message}</p></div>`; }
 }
 
-// ── Notes ────────────────────────────────────────────────────────────────────
+// ── Zones panel ───────────────────────────────────────────────────────────────
+function renderZones() {
+  const el = document.getElementById('zonesList');
+  const zones = Object.keys(S.byZone);
+  if (!zones.length) { el.innerHTML = '<div class="empty"><i class="fa-solid fa-layer-group"></i><p>No zones assessed yet</p></div>'; return; }
+  el.innerHTML = zones.map(z => {
+    const es = S.byZone[z];
+    const za = (es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
+    const zs = S.zoneSums[z];
+    return `<div class="zone-panel">
+      <div class="zone-panel-hdr" onclick="toggleZonePanel('zp-${z.replace(/\s/g,'_')}')">
+        <h3><i class="fa-solid fa-location-dot" style="color:var(--green);margin-right:6px"></i>${z}</h3>
+        <span class="za">${es.length} plant${es.length>1?'s':''} · avg ${za}/5 <i class="fa-solid fa-chevron-down" style="margin-left:4px;font-size:10px"></i></span>
+      </div>
+      <div class="zone-panel-body" id="zp-${z.replace(/\s/g,'_')}">
+        ${es.map(e=>`
+          <div class="hist-item">
+            ${e.dataUrl?`<img src="${e.dataUrl}" class="hist-thumb" alt="${e.plantId}" />`:`<div class="hist-thumb-placeholder"><i class="fa-solid fa-leaf" style="color:var(--text-light)"></i></div>`}
+            <div class="hist-info">
+              <div class="hist-name">${e.plantId}</div>
+              <div class="hist-meta">Image ${e.imageNum} · <span style="color:${ovCol(e.overall)};font-weight:700">${e.overall}/5</span></div>
+              <div class="hist-pills">
+                <span class="score-pill ${scCls(e.health)}" style="font-size:10px;padding:2px 7px">H ${e.health}</span>
+                <span class="score-pill ${scCls(e.maintenance)}" style="font-size:10px;padding:2px 7px">M ${e.maintenance}</span>
+                <span class="score-pill ${scCls(e.form)}" style="font-size:10px;padding:2px 7px">F ${e.form}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        ${zs ? `<div style="margin-top:10px;padding:10px;background:var(--bg-off);border-radius:var(--radius-sm)">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">Zone summary</div>
+          <div style="font-size:12px;color:var(--text-mid)">${zs.obs}</div>
+          ${zs.priority&&zs.priority!=='NONE'?`<div style="font-size:11px;font-weight:700;margin:6px 0 3px">Priority actions</div><div style="font-size:12px;color:var(--text-mid)">${zs.priority.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div>`:''}
+        </div>` : '<div style="font-size:12px;color:var(--text-light);margin-top:8px;font-style:italic">No zone summary yet — tap Zone summary on the Audit tab.</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleZonePanel(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ── Notes ─────────────────────────────────────────────────────────────────────
 function addNote() {
   const txt = document.getElementById('noteText').value.trim();
   if (!txt) return;
   if (!S.notes[S.zone]) S.notes[S.zone] = [];
   S.notes[S.zone].push(txt);
   document.getElementById('noteText').value = '';
-  renderNotes();
-  toast('Note added');
+  renderNotes(); toast('Note added');
 }
 
 function renderNotes() {
@@ -624,11 +594,10 @@ function renderNotes() {
   el.innerHTML = zones.map(z => `
     <div class="zone-group">
       <div class="zone-group-title">${z}</div>
-      ${S.notes[z].map((n, i) => `
+      ${S.notes[z].map((n,i) => `
         <div class="note-item">
-          <i class="fa-solid fa-circle-small" style="font-size:6px;color:var(--green);margin-top:5px;flex-shrink:0"></i>
           <span class="note-text">${n}</span>
-          <button class="note-del" onclick="deleteNote('${z}',${i})" title="Delete"><i class="fa-solid fa-xmark"></i></button>
+          <button class="note-del" onclick="deleteNote('${z}',${i})"><i class="fa-solid fa-xmark"></i></button>
         </div>
       `).join('')}
     </div>
@@ -641,42 +610,13 @@ function deleteNote(zone, idx) {
   renderNotes();
 }
 
-// ── History ──────────────────────────────────────────────────────────────────
-function renderHistory() {
-  const el = document.getElementById('historyList');
-  const zones = Object.keys(S.byZone);
-  if (!zones.length) { el.innerHTML = '<div class="empty"><i class="fa-solid fa-clock-rotate-left"></i><p>No assessments yet</p></div>'; return; }
-  el.innerHTML = zones.map(z => {
-    const es = S.byZone[z];
-    const za = (es.reduce((s, e) => s + e.overall, 0) / es.length).toFixed(1);
-    return `<div class="zone-group">
-      <div class="zone-group-title">${z} &mdash; avg ${za}/5 · ${es.length} plant${es.length > 1 ? 's' : ''}</div>
-      ${es.map(e => `
-        <div class="hist-item">
-          ${e.dataUrl ? `<img src="${e.dataUrl}" class="hist-thumb" alt="${e.plantId}" />` : `<div class="hist-thumb-placeholder"><i class="fa-solid fa-leaf" style="color:var(--text-light)"></i></div>`}
-          <div class="hist-info">
-            <div class="hist-name">${e.plantId}</div>
-            <div class="hist-meta">Image ${e.imageNum} · Overall <span style="color:${ovCol(e.overall)};font-weight:700">${e.overall}/5</span></div>
-            <div class="hist-pills">
-              <span class="score-pill ${scCls(e.health)}" style="font-size:10px;padding:2px 7px">H ${e.health}</span>
-              <span class="score-pill ${scCls(e.maintenance)}" style="font-size:10px;padding:2px 7px">M ${e.maintenance}</span>
-              <span class="score-pill ${scCls(e.form)}" style="font-size:10px;padding:2px 7px">F ${e.form}</span>
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>`;
-  }).join('');
-}
-
-// ── Stats ────────────────────────────────────────────────────────────────────
+// ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   const el = document.getElementById('reportStats');
   if (!el) return;
-  const all = S.assessments;
-  const zones = Object.keys(S.byZone);
+  const all = S.assessments, zones = Object.keys(S.byZone);
   if (!all.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light)">No assessments recorded yet</div>'; return; }
-  const avg = (all.reduce((s, e) => s + e.overall, 0) / all.length).toFixed(1);
+  const avg = (all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
   el.innerHTML = `
     <div class="stat-row"><span class="stat-label">Plants assessed</span><span class="stat-val">${all.length}</span></div>
     <div class="stat-row"><span class="stat-label">Zones covered</span><span class="stat-val">${zones.length}</span></div>
@@ -685,180 +625,206 @@ function updateStats() {
   `;
 }
 
-// ── PDF export ───────────────────────────────────────────────────────────────
+// ── Save / load audits ────────────────────────────────────────────────────────
+function getSavedAudits() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveAudit() {
+  if (!S.assessments.length) { toast('Nothing to save yet'); return; }
+  const audits = getSavedAudits();
+  const id = 'audit_' + Date.now();
+  const avg = (S.assessments.reduce((s,e)=>s+e.overall,0)/S.assessments.length).toFixed(1);
+  audits.unshift({ id, site:S.site, auditor:S.auditor, date:new Date().toISOString(), avg, zones:Object.keys(S.byZone).length, plants:S.assessments.length, state: JSON.parse(JSON.stringify(S)) });
+  // Keep max 20 saved audits
+  if (audits.length > 20) audits.length = 20;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
+  toast('Audit saved');
+  renderSetupSaved();
+}
+
+function loadAudit(id) {
+  const audits = getSavedAudits();
+  const saved = audits.find(a => a.id === id);
+  if (!saved) { toast('Audit not found'); return; }
+  S = JSON.parse(JSON.stringify(saved.state));
+  refreshHeaders();
+  document.getElementById('resultsArea').innerHTML = '';
+  document.getElementById('summaryArea').innerHTML = '';
+  document.getElementById('thumbRow').innerHTML = '';
+  document.getElementById('thumbRow').classList.add('hidden');
+  document.getElementById('assessBtn').disabled = true;
+  document.getElementById('s-setup').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  document.getElementById('mainNav').classList.add('visible');
+  switchTab('zones');
+  toast('Audit loaded: ' + saved.site);
+}
+
+function deleteSavedAudit(id) {
+  showModal('Delete audit', 'Are you sure you want to delete this saved audit? This cannot be undone.', () => {
+    const audits = getSavedAudits().filter(a => a.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(audits));
+    renderSetupSaved(); toast('Audit deleted');
+  });
+}
+
+function renderSetupSaved() {
+  const el = document.getElementById('setupSavedList');
+  if (!el) return;
+  const audits = getSavedAudits();
+  if (!audits.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light);text-align:center;padding:12px 0">No saved audits</div>'; return; }
+  el.innerHTML = audits.map(a => {
+    const date = new Date(a.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    return `<div class="saved-item">
+      <div class="saved-info">
+        <div class="saved-name">${a.site}</div>
+        <div class="saved-meta">${a.auditor} · ${date} · ${a.plants} plant${a.plants>1?'s':''} · ${a.zones} zone${a.zones>1?'s':''} · avg ${a.avg}/5</div>
+      </div>
+      <div class="saved-actions">
+        <button class="icon-btn" onclick="loadAudit('${a.id}')"><i class="fa-solid fa-folder-open"></i></button>
+        <button class="icon-btn del" onclick="deleteSavedAudit('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── New audit ─────────────────────────────────────────────────────────────────
+function confirmNewAudit() {
+  showModal('Start new audit', 'This will clear the current audit. Make sure you have saved or exported it first.', () => {
+    S = { site:'', zone:'', auditor:'', pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
+    document.getElementById('siteName').value = '';
+    document.getElementById('zoneName').value = '';
+    document.getElementById('auditorName').value = '';
+    document.getElementById('resultsArea').innerHTML = '';
+    document.getElementById('summaryArea').innerHTML = '';
+    document.getElementById('s-main').classList.remove('active');
+    document.getElementById('mainNav').classList.remove('visible');
+    document.getElementById('s-setup').classList.add('active');
+    renderSetupSaved();
+  });
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function showModal(title, body, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  document.getElementById('modalConfirm').onclick = () => { closeModal(); onConfirm(); };
+  document.getElementById('modal').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── PDF export ────────────────────────────────────────────────────────────────
 async function exportPDF() {
   const all = S.assessments;
   if (!all.length) { toast('No assessments to export'); return; }
   const status = document.getElementById('pdfStatus');
   status.textContent = 'Building PDF…';
-
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const ML = 15, MR = 15, MT = 15, PW = 210;
-  const CW = PW - ML - MR;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const ML=15, MR=15, MT=15, PW=210, CW=PW-ML-MR;
   let y = MT;
+  const GREEN='#0F6E56',DARK='#1a1a1a',MID='#555',LIGHT='#888',RULE='#ddd',OFFBG='#f8f8f6';
+  function chk(n) { if(y+n>282){doc.addPage();y=MT;} }
+  function rl() { doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.line(ML,y,PW-MR,y); }
+  function scCol(s){return s>=4?'#085041':s>=3.5?'#633806':'#791F1F';}
+  function scBg(s){return s>=4?'#E1F5EE':s>=3.5?'#FAEEDA':'#FCEBEB';}
 
-  const GREEN = '#0F6E56', DARK = '#1a1a1a', MID = '#555', LIGHT = '#888', RULE = '#ddd', OFFBG = '#f8f8f6';
+  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(DARK);
+  doc.text('PlantScore Audit Report',ML,y);y+=8;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(LIGHT);
+  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Zones: '+Object.keys(S.byZone).join(' · '),ML,y);y+=5;
+  rl();y+=6;
 
-  function checkPage(need) { if (y + need > 282) { doc.addPage(); y = MT; } }
-  function rule() { doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.line(ML, y, PW - MR, y); }
-
-  // Cover header
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(DARK);
-  doc.text('PlantScore Audit Report', ML, y); y += 8;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
-  const zones = Object.keys(S.byZone).join(' · ');
-  doc.text(`Site: ${S.site}   Auditor: ${S.auditor}   Zones: ${zones}`, ML, y); y += 5;
-  rule(); y += 6;
-
-  function zoneHdr(zone, avg) {
-    checkPage(14);
-    doc.setFillColor(OFFBG); doc.roundedRect(ML, y, CW, 11, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(DARK);
-    doc.text(zone, ML + 4, y + 7.5);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(MID);
-    doc.text('Zone average: ' + avg + ' / 5', PW - MR - 4, y + 7.5, { align: 'right' });
-    y += 15;
-  }
-
-  function scCol(s) { return s >= 4 ? '#085041' : s >= 3.5 ? '#633806' : '#791F1F'; }
-  function scBg(s)  { return s >= 4 ? '#E1F5EE' : s >= 3.5 ? '#FAEEDA' : '#FCEBEB'; }
-
-  async function plantCard(entry) {
-    const hasIssues = entry.issues.length > 0;
-    const hasRecs = entry.recs.length > 0;
-    const textH = 40 + (hasIssues ? entry.issues.slice(0,4).length * 4.5 : 0) + (hasRecs ? entry.recs.slice(0,3).length * 4.5 + 8 : 0);
-    const cardH = Math.max(60, textH);
-    checkPage(cardH + 6);
-
-    doc.setDrawColor(RULE); doc.setLineWidth(0.2);
-    doc.roundedRect(ML, y, CW, cardH, 2, 2, 'S');
-
-    // Image
-    if (entry.dataUrl) {
-      try { doc.addImage(entry.dataUrl, 'JPEG', ML + 3, y + 3, 34, cardH - 6, undefined, 'FAST'); } catch (e) {}
-    }
-
-    const tx = ML + 40;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(LIGHT);
-    doc.text('Image ' + entry.imageNum, tx, y + 6);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(DARK);
-    const nameLines = doc.splitTextToSize(entry.plantId, CW - tx + ML - 4);
-    doc.text(nameLines, tx, y + 11);
-
-    // Score pills
-    const pills = [['Health', entry.health], ['Maint.', entry.maintenance], ['Form', entry.form]];
-    let px = tx;
-    pills.forEach(([lbl, val]) => {
-      const pw = 27;
-      doc.setFillColor(scBg(val)); doc.roundedRect(px, y + 16, pw, 6, 1, 1, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(scCol(val));
-      doc.text(lbl + ' ' + val + '/5', px + pw / 2, y + 20.2, { align: 'center' });
-      px += pw + 2;
-    });
-
-    // Overall
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(scCol(entry.overall));
-    doc.text('Overall: ' + entry.overall + '/5', tx, y + 30);
-
-    let ty = y + 36;
-    if (hasIssues) {
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(MID);
-      doc.text('Issues observed', tx, ty); ty += 4.5;
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(MID);
-      entry.issues.slice(0, 4).forEach(iss => {
-        const ls = doc.splitTextToSize('• ' + iss, CW - tx + ML - 5);
-        doc.text(ls, tx, ty); ty += ls.length * 4;
-      });
-    }
-    if (hasRecs) {
-      ty += 2;
-      doc.setFillColor('#f5f5f3'); doc.rect(tx - 1, ty - 2, CW - tx + ML - 1, entry.recs.slice(0,3).length * 4 + 10, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(DARK);
-      doc.text('Recommendations', tx, ty + 3); ty += 7;
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(MID);
-      entry.recs.slice(0, 3).forEach(r => {
-        const ls = doc.splitTextToSize('• ' + r, CW - tx + ML - 5);
-        doc.text(ls, tx, ty); ty += ls.length * 4;
-      });
-    }
-    y += cardH + 5;
-  }
-
-  function zoneSumBlock(zone) {
-    const zs = S.zoneSums[zone];
-    if (!zs) return;
-    checkPage(36);
-    doc.setFillColor('#fafafa'); doc.setDrawColor(RULE); doc.setLineWidth(0.2);
-    const obsLines = doc.splitTextToSize(zs.obs || '', CW - 8);
-    const priLines = zs.priority && zs.priority !== 'NONE' ? doc.splitTextToSize(zs.priority, CW - 8) : [];
-    const bh = 14 + obsLines.length * 4.5 + (priLines.length ? priLines.length * 4 + 8 : 0);
-    doc.roundedRect(ML, y, CW, bh, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(DARK);
-    doc.text('Zone summary', ML + 4, y + 7);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(MID);
-    doc.text(obsLines, ML + 4, y + 13);
-    if (priLines.length) {
-      const py = y + 13 + obsLines.length * 4.5 + 2;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(DARK);
-      doc.text('Priority actions', ML + 4, py);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(MID);
-      doc.text(priLines, ML + 4, py + 5);
-    }
-    y += bh + 6;
-  }
-
-  // Render all zones
   for (const zone of Object.keys(S.byZone)) {
     const es = S.byZone[zone];
-    const za = (es.reduce((s, e) => s + e.overall, 0) / es.length).toFixed(1);
-    zoneHdr(zone, za);
-    for (const entry of es) await plantCard(entry);
-    zoneSumBlock(zone);
-    rule(); y += 6;
+    const za = (es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
+    chk(14);
+    doc.setFillColor(OFFBG);doc.roundedRect(ML,y,CW,11,2,2,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(DARK);doc.text(zone,ML+4,y+7.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(MID);
+    doc.text('Zone average: '+za+' / 5',PW-MR-4,y+7.5,{align:'right'});y+=15;
+
+    for (const entry of es) {
+      const hasI=entry.issues.length>0, hasR=entry.recs.length>0;
+      const tH=40+(hasI?entry.issues.slice(0,4).length*4.5:0)+(hasR?entry.recs.slice(0,3).length*4.5+8:0);
+      const cH=Math.max(60,tH);
+      chk(cH+6);
+      doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,cH,2,2,'S');
+      if(entry.dataUrl){try{doc.addImage(entry.dataUrl,'JPEG',ML+3,y+3,34,cH-6,undefined,'FAST');}catch(e){}}
+      const tx=ML+40;
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(LIGHT);doc.text('Image '+entry.imageNum,tx,y+6);
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);
+      doc.text(doc.splitTextToSize(entry.plantId,CW-tx+ML-4),tx,y+11);
+      let px=tx;
+      [['Health',entry.health],['Maint.',entry.maintenance],['Form',entry.form]].forEach(([l,v])=>{
+        const pw=27;doc.setFillColor(scBg(v));doc.roundedRect(px,y+16,pw,6,1,1,'F');
+        doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(scCol(v));
+        doc.text(l+' '+v+'/5',px+pw/2,y+20.2,{align:'center'});px+=pw+2;
+      });
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(scCol(entry.overall));
+      doc.text('Overall: '+entry.overall+'/5',tx,y+30);
+      let ty=y+36;
+      if(hasI){
+        doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(MID);doc.text('Issues observed',tx,ty);ty+=4.5;
+        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);
+        entry.issues.slice(0,4).forEach(iss=>{const ls=doc.splitTextToSize('• '+iss,CW-tx+ML-5);doc.text(ls,tx,ty);ty+=ls.length*4;});
+      }
+      if(hasR){
+        ty+=2;doc.setFillColor('#f5f5f3');doc.rect(tx-1,ty-2,CW-tx+ML-1,entry.recs.slice(0,3).length*4+10,'F');
+        doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(DARK);doc.text('Recommendations',tx,ty+3);ty+=7;
+        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);
+        entry.recs.slice(0,3).forEach(r=>{const ls=doc.splitTextToSize('• '+r,CW-tx+ML-5);doc.text(ls,tx,ty);ty+=ls.length*4;});
+      }
+      y+=cH+5;
+    }
+
+    const zs=S.zoneSums[zone];
+    if(zs){
+      chk(36);
+      const obsL=doc.splitTextToSize(zs.obs||'',CW-8);
+      const priL=zs.priority&&zs.priority!=='NONE'?doc.splitTextToSize(zs.priority,CW-8):[];
+      const bh=14+obsL.length*4.5+(priL.length?priL.length*4+8:0);
+      doc.setFillColor('#fafafa');doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,bh,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);doc.text('Zone summary',ML+4,y+7);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(MID);doc.text(obsL,ML+4,y+13);
+      if(priL.length){const py=y+13+obsL.length*4.5+2;doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(DARK);doc.text('Priority actions',ML+4,py);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(MID);doc.text(priL,ML+4,py+5);}
+      y+=bh+6;
+    }
+    rl();y+=6;
   }
 
-  // Site summary
-  if (S.siteSumText) {
-    checkPage(20);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(DARK);
-    doc.text('Final site summary — ' + S.site, ML, y); y += 8;
-    const avg = (all.reduce((s, e) => s + e.overall, 0) / all.length).toFixed(1);
-    doc.setFontSize(24); doc.setTextColor(GREEN);
-    doc.text(avg + ' / 5', ML, y); y += 6;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
-    doc.text('Site average score', ML, y); y += 10;
-
-    const gf = k => { const m = S.siteSumText.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
-    const obs = gf('OBS'), pri = gf('PRIORITY');
-
-    [['Site-wide observations', obs], ['Priority actions', pri]].forEach(([title, body]) => {
-      if (!body) return;
-      checkPage(30);
-      const lines = doc.splitTextToSize(body.replace(/\n/g, ' '), CW - 8);
-      const bh = lines.length * 4.5 + 14;
-      doc.setFillColor('#fafafa'); doc.setDrawColor(RULE); doc.setLineWidth(0.2);
-      doc.roundedRect(ML, y, CW, bh, 2, 2, 'FD');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(DARK);
-      doc.text(title, ML + 4, y + 7);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(MID);
-      doc.text(lines, ML + 4, y + 13);
-      y += bh + 5;
+  if(S.siteSumText){
+    const avg=(all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
+    chk(20);
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(DARK);doc.text('Final site summary — '+S.site,ML,y);y+=8;
+    doc.setFontSize(24);doc.setTextColor(GREEN);doc.text(avg+' / 5',ML,y);y+=6;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(LIGHT);doc.text('Site average score',ML,y);y+=10;
+    const gf=k=>{const m=S.siteSumText.match(new RegExp(k+':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)'));return m?m[1].trim():'';};
+    [['Site-wide observations',gf('OBS')],['Priority actions',gf('PRIORITY')]].forEach(([title,body])=>{
+      if(!body)return;chk(30);
+      const lines=doc.splitTextToSize(body.replace(/\n/g,' '),CW-8);
+      const bh=lines.length*4.5+14;
+      doc.setFillColor('#fafafa');doc.setDrawColor(RULE);doc.setLineWidth(0.2);doc.roundedRect(ML,y,CW,bh,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(DARK);doc.text(title,ML+4,y+7);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(MID);doc.text(lines,ML+4,y+13);y+=bh+5;
     });
   }
 
-  const fname = 'PlantScore_' + S.site.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
+  const fname='PlantScore_'+S.site.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
   doc.save(fname);
-  status.textContent = '✓ Downloaded: ' + fname;
+  status.textContent='✓ Downloaded: '+fname;
   toast('PDF saved');
 }
 
-// ── Toast ────────────────────────────────────────────────────────────────────
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
-}
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderSetupSaved();
 </script>
 </body>
 </html>
