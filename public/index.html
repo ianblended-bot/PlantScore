@@ -429,45 +429,50 @@ async function runAssessment() {
   const btn = document.getElementById('assessBtn');
   btn.disabled = true;
   const area = document.getElementById('resultsArea');
-  const ld = mkLoader('Assessing ' + S.pending.length + ' image' + (S.pending.length > 1 ? 's' : '') + '…');
-  area.appendChild(ld);
+  const total = S.pending.length;
+  const toProcess = [...S.pending];
+  S.pending = [];
+  document.getElementById('thumbRow').innerHTML = '';
+  document.getElementById('thumbRow').classList.add('hidden');
 
-  const content = S.pending.map((item, i) => [
-    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: item.b64 } },
-    { type: 'text', text: 'Image ' + (i + 1) }
-  ]).flat();
+  // Process one image at a time to avoid payload size limits
+  for (let i = 0; i < toProcess.length; i++) {
+    const imgData = toProcess[i];
+    const ld = mkLoader(`Assessing image ${i + 1} of ${total}…`);
+    area.appendChild(ld);
 
-  try {
-    const resp = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: SYSP, messages: [{ role: 'user', content }] })
-    });
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const results = parseBlocks(data.content.map(c => c.text || '').join(''));
-    area.removeChild(ld);
+    try {
+      const content = [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imgData.b64 } },
+        { type: 'text', text: 'Image 1' }
+      ];
+      const resp = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: SYSP, messages: [{ role: 'user', content }] })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      const results = parseBlocks(data.content.map(c => c.text || '').join(''));
+      area.removeChild(ld);
 
-    results.forEach((r, i) => {
-      S.counter++;
-      const imgData = S.pending[i];
-      const entry = { ...r, dataUrl: imgData?.dataUrl || null, imageNum: S.counter, zone: S.zone, ts: Date.now() };
-      S.assessments.push(entry);
-      if (!S.byZone[S.zone]) S.byZone[S.zone] = [];
-      S.byZone[S.zone].push(entry);
-      area.appendChild(buildResultCard(entry));
-    });
-
-    S.pending = [];
-    document.getElementById('thumbRow').innerHTML = '';
-    document.getElementById('thumbRow').classList.add('hidden');
-    btn.disabled = false;
-    updateStats();
-  } catch (e) {
-    area.removeChild(ld);
-    area.insertAdjacentHTML('beforeend', `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>${e.message}</p></div>`);
-    btn.disabled = false;
+      const r = results[0];
+      if (r) {
+        S.counter++;
+        const entry = { ...r, dataUrl: imgData.dataUrl || null, imageNum: S.counter, zone: S.zone, ts: Date.now() };
+        S.assessments.push(entry);
+        if (!S.byZone[S.zone]) S.byZone[S.zone] = [];
+        S.byZone[S.zone].push(entry);
+        area.appendChild(buildResultCard(entry));
+      }
+    } catch (e) {
+      area.removeChild(ld);
+      area.insertAdjacentHTML('beforeend', `<div class="loading" style="color:var(--red)"><i class="fa-solid fa-circle-exclamation" style="font-size:20px;margin-bottom:6px;display:block"></i><p>Image ${i + 1} failed: ${e.message}</p></div>`);
+    }
   }
+
+  btn.disabled = false;
+  updateStats();
 }
 
 function buildResultCard(e) {
