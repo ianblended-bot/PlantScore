@@ -512,6 +512,8 @@ async function runAssessment() {
         S.assessments.push(entry);
         if (!S.byZone[S.zone]) S.byZone[S.zone] = [];
         S.byZone[S.zone].push(entry);
+        // Mark zone summary as stale if it already exists
+        if (S.zoneSums[S.zone]) S.zoneSums[S.zone].stale = true;
         area.appendChild(buildCard(entry));
       }
     } catch(e) {
@@ -682,9 +684,14 @@ function renderZones() {
     const za = (es.reduce((s,e) => s + e.overall, 0) / es.length).toFixed(1);
     const zs = S.zoneSums[z];
     const zid = 'zp_' + z.replace(/\W/g,'_');
+    const isStale = zs && zs.stale;
+    const isActive = S.zone === z;
     return `<div class="zone-panel">
       <div class="zp-hdr" onclick="toggleZP('${zid}')">
-        <h3><i class="fa-solid fa-location-dot" style="color:var(--green);margin-right:6px"></i>${z}</h3>
+        <h3>
+          <i class="fa-solid fa-location-dot" style="color:${isActive?'var(--green)':'var(--text-light)'};margin-right:6px"></i>${z}
+          ${isActive ? '<span style="font-size:10px;background:var(--green-bg);color:var(--green-dark);padding:2px 6px;border-radius:10px;margin-left:4px;font-weight:600">ACTIVE</span>' : ''}
+        </h3>
         <span class="za">${es.length} plant${es.length>1?'s':''} · avg ${za}/5 <i class="fa-solid fa-chevron-down" style="margin-left:4px;font-size:10px"></i></span>
       </div>
       <div class="zp-body" id="${zid}">
@@ -701,16 +708,72 @@ function renderZones() {
               </div>
             </div>
           </div>`).join('')}
+
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          ${!isActive ? `<button class="act-btn" style="flex:1;min-width:120px" onclick="continueZone('${z}')">
+            <i class="fa-solid fa-plus"></i> Add assessments
+          </button>` : ''}
+          <button class="act-btn" style="flex:1;min-width:120px" onclick="generateZoneSummaryFor('${z}')">
+            <i class="fa-solid fa-clipboard-list"></i> ${zs ? (isStale ? 'Update summary' : 'Regenerate') : 'Generate summary'}
+          </button>
+        </div>
+
         ${zs ? `<div style="margin-top:10px;padding:10px;background:var(--bg-off);border-radius:var(--rs)">
+          ${isStale ? `<div style="font-size:11px;color:var(--amber);font-weight:600;margin-bottom:6px"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>Summary may be outdated — new assessments added since last summary</div>` : ''}
           <div style="font-size:11px;font-weight:700;margin-bottom:4px">Zone summary</div>
           <div style="font-size:12px;color:var(--text-mid)">${zs.obs}</div>
           ${zs.priority && zs.priority !== 'NONE' ? `<div style="font-size:11px;font-weight:700;margin:6px 0 3px">Priority actions</div><div style="font-size:12px;color:var(--text-mid)">${zs.priority.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'• '+l.replace(/^[•\-]\s*/,'')).join('<br>')}</div>` : ''}
-        </div>` : '<div style="font-size:12px;color:var(--text-light);margin-top:8px;font-style:italic">No zone summary yet.</div>'}
+        </div>` : `<div style="font-size:12px;color:var(--text-light);margin-top:8px;font-style:italic">No summary yet — tap Generate summary above.</div>`}
+
+        <div id="zone-sum-inline-${zid}" style="margin-top:8px"></div>
       </div>
     </div>`;
   }).join('');
 }
+
 function toggleZP(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
+
+function continueZone(zone) {
+  // Switch active zone back to this one and go to audit tab
+  applyZoneChange(zone);
+  switchTab('audit');
+  toast('Continuing: ' + zone);
+}
+
+async function generateZoneSummaryFor(zone) {
+  const entries = S.byZone[zone] || [];
+  if (!entries.length) { toast('No assessments in ' + zone); return; }
+  const zid = 'zp_' + zone.replace(/\W/g,'_');
+  const inlineEl = document.getElementById('zone-sum-inline-' + zid);
+  if (!inlineEl) return;
+  const ld = mkLoader('Generating summary for ' + zone + '…');
+  inlineEl.appendChild(ld);
+  const avg = (entries.reduce((s,e) => s + e.overall, 0) / entries.length).toFixed(1);
+  const sd = entries.map(e => `Image ${e.imageNum}: ${e.plantId} — ${e.overall}/5. Issues: ${e.issues.join('; ') || 'none'}`).join('\n');
+  const notes = (S.notes[zone] || []).join('; ') || 'none';
+  try {
+    const resp = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 600,
+        messages: [{ role: 'user', content: `PlantScore zone summary. Zone: ${zone}. Avg: ${avg}/5.\nAssessments:\n${sd}\nNotes: ${notes}\nOutput EXACTLY:\nOBS: [2-3 sentences on key trends. Do NOT mention scores or numbers. Focus on plant condition, presentation and maintenance themes.]\nPRIORITY: [action-focused bullets for displays scoring ≤3 only, or NONE]\nNOTES: [notes or NONE]` }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.map(c => c.text || '').join('');
+    const gf = k => { const m = text.match(new RegExp(k + ':\\s*([\\s\\S]+?)(?=\\n[A-Z]+:|$)')); return m ? m[1].trim() : ''; };
+    S.zoneSums[zone] = { avg, obs: gf('OBS'), priority: gf('PRIORITY'), notes: gf('NOTES'), stale: false };
+    inlineEl.innerHTML = '';
+    // Re-render the zones panel to reflect updated summary
+    renderZones();
+    // Re-open the panel
+    const panel = document.getElementById(zid);
+    if (panel) panel.classList.add('open');
+    toast('Summary updated: ' + zone);
+    autoSave();
+  } catch(e) {
+    inlineEl.innerHTML = `<div style="color:var(--red);font-size:12px;padding:8px 0">Error: ${e.message}</div>`;
+  }
+}
 
 // ── Notes ─────────────────────────────────────────────────────────────────────
 function addNote() {
