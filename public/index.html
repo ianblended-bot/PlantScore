@@ -171,6 +171,7 @@
     </div>
     <input type="file" id="camIn" accept="image/*" capture="environment" multiple onchange="handleFiles(this.files)" />
     <input type="file" id="fileIn" accept="image/*" multiple onchange="handleFiles(this.files)" />
+    <input type="file" id="closeUpIn" accept="image/*" onchange="handleCloseUp(this.files)" />
     <div id="thumbRow" class="thumb-row hidden"></div>
     <button id="assessBtn" class="btn btn-primary" onclick="runAssessment()" disabled>
       <i class="fa-solid fa-wand-magic-sparkles"></i> Assess images
@@ -228,7 +229,8 @@
       </div>
     </div>
     <div class="stat-card" id="reportStats"></div>
-    <button class="btn btn-primary" onclick="exportPDF()"><i class="fa-solid fa-file-arrow-down"></i> Download PDF report</button>
+    <button class="btn btn-primary" onclick="exportPDF()"><i class="fa-solid fa-file-arrow-down"></i> Download full PDF report</button>
+    <button class="btn btn-outline" onclick="exportAbridgedPDF()" style="margin-top:8px"><i class="fa-solid fa-file-lines"></i> Download abridged PDF</button>
     <div id="pdfStatus" style="margin-top:10px;font-size:12px;color:var(--text-light);text-align:center"></div>
     <hr class="divider" />
     <button class="btn btn-outline" onclick="doZoneEnd()"><i class="fa-solid fa-clipboard-list"></i> Zone summary</button>
@@ -350,7 +352,7 @@ let S = {
 function startAudit() {
   const s = v('siteName'), z = v('zoneName'), a = v('auditorName');
   if (!s || !z || !a) { toast('Please fill in all fields'); return; }
-  S = { site:s, zone:z, auditor:a, pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
+  S = { site:s, zone:z, auditor:a, auditDate:new Date().toISOString(), pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
   refreshHeaders();
   document.getElementById('s-setup').classList.remove('active');
   document.getElementById('s-main').classList.add('active');
@@ -545,7 +547,10 @@ function buildCard(e) {
   }
   d.innerHTML = `
     ${e.dataUrl ? `<img src="${e.dataUrl}" class="card-img" alt="${e.plantId}" />` : ''}
-    <div class="img-num">Image ${e.imageNum}</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px">
+      <div class="img-num">Image ${e.imageNum}</div>
+      <button onclick="deleteAssessment(${e.imageNum})" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:13px;padding:0 2px" title="Remove assessment"><i class="fa-solid fa-xmark"></i></button>
+    </div>
     <div class="plant-name">${e.plantId}</div>
     <div class="scores">
       <span class="sp ${scCls(e.health)}">Health ${e.health}/5</span>
@@ -554,7 +559,8 @@ function buildCard(e) {
     </div>
     <div class="overall" style="color:${ovCol(e.overall)}">Overall: ${e.overall}/5</div>
     ${e.issues.length ? `<div class="ilbl">Issues observed</div><div class="ibody">${e.issues.map(x=>'• '+x).join('<br>')}</div>` : ''}
-    ${e.recs.length ? `<div class="rbox"><div class="rlbl">Recommendations</div><div class="rbody">${e.recs.map(x=>'• '+x).join('<br>')}</div></div>` : ''}`;
+    ${e.recs.length ? `<div class="rbox"><div class="rlbl">Recommendations</div><div class="rbody">${e.recs.map(x=>'• '+x).join('<br>')}</div></div>` : ''}
+    <button onclick="addCloseUp(${e.imageNum})" style="margin-top:10px;width:100%;padding:8px;border:1px dashed var(--border);border-radius:var(--rs);background:none;color:var(--text-mid);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="fa-solid fa-magnifying-glass"></i> Add close-up image</button>`;
   return d;
 }
 
@@ -563,6 +569,112 @@ function mkLoader(msg) {
   d.className = 'loading';
   d.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
   return d;
+}
+
+// FIX 2: Delete an assessment
+function deleteAssessment(imageNum) {
+  showModal('Remove assessment', 'Remove Image ' + imageNum + ' from this audit? This cannot be undone.', () => {
+    const idx = S.assessments.findIndex(e => e.imageNum === imageNum);
+    if (idx === -1) return;
+    const entry = S.assessments[idx];
+    S.assessments.splice(idx, 1);
+    if (S.byZone[entry.zone]) {
+      S.byZone[entry.zone] = S.byZone[entry.zone].filter(e => e.imageNum !== imageNum);
+      if (!S.byZone[entry.zone].length) delete S.byZone[entry.zone];
+    }
+    if (S.zoneSums[entry.zone]) S.zoneSums[entry.zone].stale = true;
+    // Remove card from DOM
+    const area = document.getElementById('resultsArea');
+    const cards = area.querySelectorAll('.card');
+    const target = Array.from(cards).find(c => c.querySelector('.img-num')?.textContent.includes('Image ' + imageNum));
+    if (target) target.remove();
+    updateStats();
+    autoSave();
+    toast('Image ' + imageNum + ' removed');
+  });
+}
+
+// FIX 3: Close-up image — link to most recent assessment
+let closeUpTargetNum = null;
+function addCloseUp(imageNum) {
+  closeUpTargetNum = imageNum;
+  document.getElementById('closeUpIn').click();
+}
+
+async function handleCloseUp(files) {
+  if (!files.length || closeUpTargetNum === null) return;
+  const targetIdx = S.assessments.findIndex(e => e.imageNum === closeUpTargetNum);
+  if (targetIdx === -1) { toast('Assessment not found'); return; }
+  const entry = S.assessments[targetIdx];
+  const area = document.getElementById('resultsArea');
+  const cards = area.querySelectorAll('.card');
+  const targetCard = Array.from(cards).find(c => c.querySelector('.img-num')?.textContent.includes('Image ' + closeUpTargetNum));
+  const ld = mkLoader('Analysing close-up for Image ' + closeUpTargetNum + '…');
+  if (targetCard) area.insertBefore(ld, targetCard.nextSibling); else area.appendChild(ld);
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const { b64 } = await resizeImage(e.target.result, 1600, 0.88);
+    try {
+      const resp = await fetch(API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5', max_tokens: 800,
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+            { type: 'text', text: `This is a close-up image showing a specific issue on a plant display previously assessed as: ${entry.plantId} (Health: ${entry.health}/5, Maintenance: ${entry.maintenance}/5, Form: ${entry.form}/5, Overall: ${entry.overall}/5).
+
+Analyse ONLY what is visible in this close-up (e.g. pest, dust, disease, damage, soil debris).
+Output EXACTLY:
+ISSUE: [one-line description of what you see]
+HEALTH_ADJ: [adjusted Health score 1-5 based on this evidence]
+MAINTENANCE_ADJ: [adjusted Maintenance score 1-5 based on this evidence]
+SEVERITY: [minor / moderate / significant]` }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message);
+      const text = data.content.map(c => c.text || '').join('');
+      const g = k => { const m = text.match(new RegExp(k + ':\s*(.+)')); return m ? m[1].trim() : ''; };
+      const issue = g('ISSUE');
+      const newHealth = parseFloat(g('HEALTH_ADJ')) || entry.health;
+      const newMaint = parseFloat(g('MAINTENANCE_ADJ')) || entry.maintenance;
+      const severity = g('SEVERITY') || 'moderate';
+      const newOverall = ((newHealth + newMaint + entry.form) / 3).toFixed(1);
+
+      // Update entry
+      if (!entry.issues.includes(issue)) entry.issues.push(issue);
+      entry.health = newHealth;
+      entry.maintenance = newMaint;
+      entry.overall = parseFloat(newOverall);
+      entry.closeUps = (entry.closeUps || []);
+      entry.closeUps.push({ issue, severity });
+      if (entry.overall <= 3 && !entry.recs.length) entry.recs.push('Address ' + issue.toLowerCase());
+      S.assessments[targetIdx] = entry;
+      if (S.byZone[entry.zone]) {
+        const zi = S.byZone[entry.zone].findIndex(e => e.imageNum === closeUpTargetNum);
+        if (zi !== -1) S.byZone[entry.zone][zi] = entry;
+      }
+      if (S.zoneSums[entry.zone]) S.zoneSums[entry.zone].stale = true;
+
+      ld.remove();
+      // Refresh the original card
+      if (targetCard) targetCard.replaceWith(buildCard(entry));
+      // Show close-up result inline
+      const closeUpNote = document.createElement('div');
+      closeUpNote.style.cssText = 'background:#FFF8E1;border:1px solid #FFD54F;border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px';
+      closeUpNote.innerHTML = `<strong><i class="fa-solid fa-magnifying-glass" style="margin-right:5px"></i>Close-up — Image ${closeUpTargetNum}</strong><br>${issue} <span style="color:var(--text-light)">(${severity})</span><br><span style="color:var(--text-light);font-size:11px">Scores updated: Health ${newHealth}/5 · Maintenance ${newMaint}/5 · Overall ${newOverall}/5</span>`;
+      if (targetCard && targetCard.parentNode) targetCard.parentNode.insertBefore(closeUpNote, targetCard.nextSibling);
+      updateStats(); autoSave();
+      toast('Close-up applied to Image ' + closeUpTargetNum);
+    } catch(err) {
+      ld.remove();
+      toast('Close-up failed: ' + err.message);
+    }
+    closeUpTargetNum = null;
+  };
+  reader.readAsDataURL(files[0]);
 }
 
 async function retryAssessment(idx) {
@@ -812,6 +924,7 @@ function updateStats() {
   if (!all.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light)">No assessments recorded yet</div>'; return; }
   const avg = (all.reduce((s,e) => s + e.overall, 0) / all.length).toFixed(1);
   el.innerHTML = `
+    <div class="stat-row"><span class="stat-label">Audit date</span><span class="stat-val">${S.auditDate ? new Date(S.auditDate).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span></div>
     <div class="stat-row"><span class="stat-label">Plants assessed</span><span class="stat-val">${all.length}</span></div>
     <div class="stat-row"><span class="stat-label">Zones covered</span><span class="stat-val">${zones.length}</span></div>
     <div class="stat-row"><span class="stat-label">Site average</span><span class="stat-val" style="color:${ovCol(parseFloat(avg))}">${avg}/5</span></div>
@@ -914,7 +1027,7 @@ function renderSetupSaved() {
 // ── New audit ─────────────────────────────────────────────────────────────────
 function confirmNewAudit() {
   showModal('Start new audit', 'This will clear the current audit. Save first if needed.', () => {
-    S = { site:'', zone:'', auditor:'', pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
+    S = { site:'', zone:'', auditor:'', auditDate:null, pending:[], assessments:[], byZone:{}, notes:{}, zoneSums:{}, siteSumText:'', counter:0 };
     ['siteName','zoneName','auditorName'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('resultsArea').innerHTML = '';
     document.getElementById('summaryArea').innerHTML = '';
@@ -959,7 +1072,9 @@ async function exportPDF() {
   doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(DARK);
   doc.text('PlantScore Audit Report', ML, y); y+=8;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
-  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Zones: '+Object.keys(S.byZone).join(' · ')+'   Date: '+new Date().toLocaleDateString('en-GB'), ML, y); y+=5;
+  const auditDateStr = S.auditDate ? new Date(S.auditDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Date: '+auditDateStr, ML, y); y+=4;
+  doc.text('Zones: '+Object.keys(S.byZone).join(' · '), ML, y); y+=5;
   rl(); y+=6;
 
   for (const zone of Object.keys(S.byZone)) {
@@ -1048,6 +1163,113 @@ async function exportPDF() {
   doc.save(fname);
   status.innerHTML = '✓ Downloaded: '+fname+' &nbsp;<button onclick="switchTab(\'audit\')" style="font-size:12px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;margin-left:4px">Back to audit</button>';
   toast('PDF saved');
+}
+
+// ── Abridged PDF ─────────────────────────────────────────────────────────────
+async function exportAbridgedPDF() {
+  const all = S.assessments;
+  if (!all.length) { toast('No assessments to export'); return; }
+  const status = document.getElementById('pdfStatus');
+  status.textContent = 'Building abridged PDF…';
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const ML=15,MR=15,MT=15,PW=210,CW=PW-ML-MR;
+  let y = MT;
+  const GREEN='#0F6E56',DARK='#1a1a1a',MID='#555',LIGHT='#888',RULE='#ddd',OFFBG='#f8f8f6';
+  const chk = n => { if (y+n>282){ doc.addPage(); y=MT; } };
+  const rl = () => { doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.line(ML,y,PW-MR,y); };
+  const scCol = s => s>=4?'#085041':s>=3.5?'#633806':'#791F1F';
+  const scBg  = s => s>=4?'#E1F5EE':s>=3.5?'#FAEEDA':'#FCEBEB';
+  const auditDateStr = S.auditDate ? new Date(S.auditDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+  // Header
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(DARK);
+  doc.text('PlantScore — Abridged Report', ML, y); y+=7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
+  doc.text('Site: '+S.site+'   Auditor: '+S.auditor+'   Date: '+auditDateStr, ML, y); y+=5;
+  rl(); y+=6;
+
+  // Site average
+  const siteAvg = (all.reduce((s,e)=>s+e.overall,0)/all.length).toFixed(1);
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(GREEN);
+  doc.text(siteAvg+' / 5', ML, y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(LIGHT);
+  doc.text('Site average score', ML, y); y+=8;
+  rl(); y+=6;
+
+  // Per zone: scores table
+  for (const zone of Object.keys(S.byZone)) {
+    const es = S.byZone[zone].filter(e => !e.parseError);
+    if (!es.length) continue;
+    const za = (es.reduce((s,e)=>s+e.overall,0)/es.length).toFixed(1);
+    chk(14);
+    doc.setFillColor(OFFBG); doc.roundedRect(ML,y,CW,10,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(DARK);
+    doc.text(zone, ML+4, y+6.8);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(MID);
+    doc.text('Zone average: '+za+' / 5', PW-MR-4, y+6.8, {align:'right'}); y+=14;
+
+    // Table header
+    chk(8);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(MID);
+    doc.text('#', ML, y); doc.text('Plant', ML+8, y);
+    doc.text('H', ML+100, y); doc.text('M', ML+112, y); doc.text('F', ML+124, y); doc.text('Overall', ML+134, y);
+    y+=4; doc.setDrawColor(RULE); doc.setLineWidth(0.2); doc.line(ML,y,PW-MR,y); y+=4;
+
+    es.forEach(e => {
+      chk(7);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(DARK);
+      doc.text(String(e.imageNum), ML, y);
+      const name = doc.splitTextToSize(e.plantId, 88);
+      doc.text(name[0], ML+8, y);
+      // Coloured score values
+      [['health',ML+100],['maintenance',ML+112],['form',ML+124]].forEach(([k,x])=>{
+        doc.setTextColor(scCol(e[k])); doc.text(String(e[k]), x, y);
+      });
+      doc.setFont('helvetica','bold'); doc.setTextColor(scCol(e.overall));
+      doc.text(String(e.overall)+'/5', ML+134, y);
+      y+=6;
+    });
+    y+=4;
+
+    // Priority actions if any
+    const priorities = es.filter(e => e.recs.length > 0);
+    if (priorities.length) {
+      chk(12);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(DARK);
+      doc.text('Priority actions', ML, y); y+=5;
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(MID);
+      priorities.forEach(e => {
+        e.recs.slice(0,2).forEach(r => {
+          chk(6);
+          const ls = doc.splitTextToSize('• [Image '+e.imageNum+'] '+r, CW-4);
+          doc.text(ls, ML+2, y); y+=ls.length*4;
+        });
+      });
+      y+=2;
+    }
+    rl(); y+=6;
+  }
+
+  // Site summary
+  if (S.siteSumText) {
+    chk(20);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(DARK);
+    doc.text('Site-wide observations & priority actions', ML, y); y+=7;
+    const gf = k => { const m=S.siteSumText.match(new RegExp(k+':\s*([\s\S]+?)(?=\n[A-Z]+:|$)')); return m?m[1].trim():''; };
+    [['Site-wide observations',gf('OBS')],['Priority actions',gf('PRIORITY')]].forEach(([title,body])=>{
+      if (!body) return; chk(20);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(DARK); doc.text(title, ML, y); y+=5;
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(MID);
+      const lines = doc.splitTextToSize(body.replace(/
+/g,' '), CW);
+      doc.text(lines, ML, y); y+=lines.length*4+4;
+    });
+  }
+
+  const fname='PlantScore_Abridged_'+S.site.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+  doc.save(fname);
+  status.innerHTML='✓ Abridged report downloaded &nbsp;<button onclick="switchTab('audit')" style="font-size:12px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;margin-left:4px">Back to audit</button>';
+  toast('Abridged PDF saved');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
